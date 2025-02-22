@@ -1,0 +1,217 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f9;
+}
+
+header {
+    background-color: #333;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+}
+
+header nav ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+header nav ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+header nav ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+}
+
+form {
+    display: block;
+    max-width: 400px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: white;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+form label {
+    display: block;
+    margin: 10px 0 5px;
+}
+
+form input {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+form button {
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #555;
+}
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f4f4f4;
+}
+
+header {
+    display: flex;               /* Make header a flex container */
+    justify-content: space-between; /* Space between navigation and profile */
+    align-items: center;         /* Align items vertically in the center */
+    padding: 10px 20px;          /* Padding for the header */
+    background-color:white;      /* Dark background for the header */
+    color:gray;
+    
+}
+
+header nav ul {
+    list-style: none;
+    padding: 0;
+}
+
+header nav ul li {
+    display: inline;
+    margin-right: 20px;
+}
+
+header nav ul li a {
+    color: gray;
+    text-decoration: none;
+    font-weight: bold;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* Profile container styling */
+.profile {
+    display: flex;               /* Use flexbox */
+    align-items: center;         /* Vertically align content (image and text) */
+    justify-content: flex-end; /* Align items to the left */
+    gap: 5px;                   /* Add space between the text and image */
+}
+
+/* Profile text styling */
+.profile p {
+    font-size: 1.2em;      /* Adjust text size */
+    margin: 0;             /* Remove any default margins */
+    color:gray;  
+    font-weight: bold;        /* Optional: change text color */
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;   
+}
+
+/* Profile image styling */
+.profile img {
+    width: 40px;            /* Set image width */
+    height: 40px;           /* Set image height */
+    border-radius: 50%;     /* Make image circular */
+    border: 3px solid rgb(60, 238, 25);/* Optional: add a border around the image */
+}
+
+h1 {
+    text-align: center;
+    margin: 20px 0;
+}
+
+/* Slider styles */
+.slider {
+    position: relative;
+    max-width: 100%;
+    margin: auto;
+    overflow: hidden;
+    
+}
+
+.slide {
+    display: none;
+}
+
+.slide img {
+    width: 100%;
+    height:70vh;
+}
+
+/* Cards Section */
+.cards {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    padding: 50px 10px;
+    text-align: center;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 300px;
+    padding: 20px;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.card:hover {
+    transform: scale(1.05);
+}
+
+.card img {
+    width: 100%;
+    border-radius: 8px;
+}
+
+.card h3 {
+    margin-top: 15px;
+    font-size: 1.2em;
+}
+
+.card p {
+    font-size: 0.9em;
+    color: #666;
+}
+
+/* Footer Section */
+footer {
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 20px;
+}
+
+footer ul {
+    list-style: none;
+    padding: 0;
+}
+
+footer ul li {
+    display: inline;
+    margin: 0 10px;
+}
+
+footer ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+footer ul li a:hover {
+    text-decoration: underline;
+}
