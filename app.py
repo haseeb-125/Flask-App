@@ -2,6 +2,8 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 
+
+
 app = Flask(__name__)
 
 # Secret key for session management (make sure to change it in production)
@@ -24,35 +26,57 @@ def home():
     return render_template('home.html', username=username)
 
 # Signup Page Route  
+# @app.route('/signup', methods=['GET', 'POST'])
+# def signup():
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         password = request.form['password']
+#         email = request.form['email']
+#         gender = request.form['gender']
+        
+#         # Check if the username or email already exists in MongoDB
+#         user_by_username = mongo.db.users.find_one({'username': username})
+#         user_by_email = mongo.db.users.find_one({'email': email})
+        
+#         if user_by_username or user_by_email:
+#             flash("User with this username or email already exists!", 'danger')
+#             return redirect(url_for('signup'))  # Redirect to signup page to show the error
+        
+#         # Hash the password before storing it
+#         hashed_password = generate_password_hash(password)
+
+#         # Add new user to MongoDB
+#         mongo.db.users.insert_one({
+#             'username': username,
+#             'password': hashed_password,
+#             'email': email,
+#             'gender': gender
+#         })
+
+#         flash("User registered successfully!", 'success')  # Show success message
+#         return redirect(url_for('login'))  # Redirect to login page after successful signup
+    
+#     return render_template('signup.html')
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
         email = request.form['email']
-        gender = request.form['gender']
         
-        # Check if the username or email already exists in MongoDB
-        user_by_username = mongo.db.users.find_one({'username': username})
-        user_by_email = mongo.db.users.find_one({'email': email})
+        # Check if the username already exists (example logic)
+        user_exists = mongo.db.users.find_one({'username': username})
         
-        if user_by_username or user_by_email:
-            flash("User with this username or email already exists!", 'danger')
-            return redirect(url_for('signup'))  # Redirect to signup page to show the error
+        if user_exists:
+            flash("Username already exists!", 'danger')  # Flash message for duplicate username
+            return redirect(url_for('signup'))
         
-        # Hash the password before storing it
+        # Proceed with registration
         hashed_password = generate_password_hash(password)
-
-        # Add new user to MongoDB
-        mongo.db.users.insert_one({
-            'username': username,
-            'password': hashed_password,
-            'email': email,
-            'gender': gender
-        })
-
-        flash("User registered successfully!", 'success')  # Show success message
-        return redirect(url_for('login'))  # Redirect to login page after successful signup
+        mongo.db.users.insert_one({'username': username, 'password': hashed_password, 'email': email})
+        
+        flash("User registered successfully!", 'success')  # Flash success message
+        return redirect(url_for('login'))  # Redirect to login after successful signup
     
     return render_template('signup.html')
 

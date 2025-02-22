@@ -1,15 +1,22 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
+
 <body>
 
-
     <h1>Sign Up</h1>
+    <!-- Flash messages will be rendered in this hidden div -->
+    {% with messages = get_flashed_messages() %}
+    {% if messages %}
+    <div id="flash-message" style="display:none;">{{ messages[0] }}</div>
+    {% endif %}
+    {% endwith %}
     <form method="POST">
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
@@ -26,5 +33,16 @@
         <button type="submit">Signup</button>
         <p>If you have an account than <a href="{{ url_for('login') }}">Login</a>.</p>
     </form>
+    <!-- Plain JavaScript to show the flash message -->
+    <script>
+        window.onsubmit = function () {
+            var flashMessage = document.getElementById("flash-message");
+            if (flashMessage) {
+                alert(flashMessage.innerText);  // Show the flash message in an alert box
+            }
+        };
+    </script>
+
 </body>
+
 </html>
