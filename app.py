@@ -2,8 +2,6 @@ from flask import Flask, render_template, request, redirect, url_for, session, f
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 
-
-
 app = Flask(__name__)
 
 # Secret key for session management (make sure to change it in production)
@@ -25,38 +23,7 @@ def home():
     
     return render_template('home.html', username=username)
 
-# Signup Page Route  
-# @app.route('/signup', methods=['GET', 'POST'])
-# def signup():
-#     if request.method == 'POST':
-#         username = request.form['username']
-#         password = request.form['password']
-#         email = request.form['email']
-#         gender = request.form['gender']
-        
-#         # Check if the username or email already exists in MongoDB
-#         user_by_username = mongo.db.users.find_one({'username': username})
-#         user_by_email = mongo.db.users.find_one({'email': email})
-        
-#         if user_by_username or user_by_email:
-#             flash("User with this username or email already exists!", 'danger')
-#             return redirect(url_for('signup'))  # Redirect to signup page to show the error
-        
-#         # Hash the password before storing it
-#         hashed_password = generate_password_hash(password)
-
-#         # Add new user to MongoDB
-#         mongo.db.users.insert_one({
-#             'username': username,
-#             'password': hashed_password,
-#             'email': email,
-#             'gender': gender
-#         })
-
-#         flash("User registered successfully!", 'success')  # Show success message
-#         return redirect(url_for('login'))  # Redirect to login page after successful signup
-    
-#     return render_template('signup.html')
+# Sign Up Route
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     if request.method == 'POST':
@@ -69,7 +36,7 @@ def signup():
         
         if user_exists:
             flash("Username already exists!", 'danger')  # Flash message for duplicate username
-            return redirect(url_for('signup'))
+            return redirect(url_for('signup'))  # Redirect back to signup page
         
         # Proceed with registration
         hashed_password = generate_password_hash(password)
@@ -77,7 +44,8 @@ def signup():
         
         flash("User registered successfully!", 'success')  # Flash success message
         return redirect(url_for('login'))  # Redirect to login after successful signup
-    
+
+    # If it's a GET request, render the signup form
     return render_template('signup.html')
 
 
@@ -96,11 +64,17 @@ def login():
         else:  # It's a username
             user_found = mongo.db.users.find_one({'username': identifier})
 
-        if user_found and check_password_hash(user_found['password'], password):
-            session['username'] = user_found['username']  # Store the username in session
-            return redirect(url_for('home'))
+        # Here is where the login check code goes
+        if user_found:
+            # Check if the password is correct
+            if check_password_hash(user_found['password'], password):
+                session['username'] = user_found['username']  # Store the username in session
+                flash("Login successful!", 'success')  # Flash success message
+                return redirect(url_for('home'))  # Redirect to home page after successful login
+            else:
+                flash("Invalid password! Please try again.", 'danger')  # Incorrect password message
         else:
-            return "Invalid credentials!"  # Error message if credentials don't match
+            flash("User not found! Please check your username or email.", 'danger')  # User not found message
 
     return render_template('login.html')
 
@@ -110,13 +84,51 @@ def login():
 def about_us():
     # Check if user is logged in
     if 'username' not in session:
+        flash("You need to log in to access this page!", 'warning')
         return redirect(url_for('login'))
     return render_template('about_us.html')
+
+# Profile Page Route
+@app.route('/profile')
+def profile():
+    # Check if user is logged in
+    if 'username' not in session:
+        flash("You need to log in to access this page!", 'warning')
+        return redirect(url_for('login'))
+    
+    username = session['username']
+    user = mongo.db.users.find_one({'username': username})
+    return render_template('profile.html', user=user)
+
+# Update Password Route
+@app.route('/update_password', methods=['GET', 'POST'])
+def update_password():
+    # Check if user is logged in
+    if 'username' not in session:
+        flash("You need to log in to access this page!", 'warning')
+        return redirect(url_for('login'))
+    
+    if request.method == 'POST':
+        old_password = request.form['old_password']
+        new_password = request.form['new_password']
+        username = session['username']
+        user = mongo.db.users.find_one({'username': username})
+
+        if user and check_password_hash(user['password'], old_password):
+            new_hashed_password = generate_password_hash(new_password)
+            mongo.db.users.update_one({'username': username}, {'$set': {'password': new_hashed_password}})
+            flash("Password updated successfully!", 'success')
+            return redirect(url_for('profile'))
+        else:
+            flash("Old password is incorrect!", 'danger')
+
+    return render_template('update_password.html')
 
 # Logout Route (to clear session data)
 @app.route('/logout')
 def logout():
     session.pop('username', None)  # Remove username from session
+    flash("You have been logged out successfully!", 'success')
     return redirect(url_for('login'))
 
 if __name__ == '__main__':

@@ -1,28 +1,160 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-</head>
-<body>
-   
+    <style>
+        /* Basic styling for centering the form */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+        }
 
-    <h1>Login</h1>
-    
+        form {
+            width: 100%;
+            max-width: 400px;
+            padding: 30px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: #fff;
+        }
+
+        h2 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-size: 1rem;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="password"] {
+            width: 100%;
+            padding: 12px;
+            margin: 12px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1rem;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        p {
+            text-align: center;
+        }
+
+        a {
+            text-decoration: none;
+            color: #4CAF50;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        /* Flash messages styling */
+        .alert {
+            padding: 12px;
+            margin: 12px 0;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+
+        .alert-success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+
+        .alert-danger {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Flash message positioning */
+        .alert {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            width: auto;
+            max-width: 400px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Flash messages section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+    {% endwith %}
+
     <form method="POST">
+        <h2>Login</h2>
         <label for="username_or_email">Username or Email:</label>
         <input type="text" id="username_or_email" name="username_or_email" required>
         <br><br>
+
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>
+        <input type="checkbox" onclick="togglePassword()"> Show Password
         <br><br>
+
         <button type="submit">Login</button>
+
         <p>Don't have an account? <a href="{{ url_for('signup') }}">Sign up here</a>.</p>
     </form>
-        
-    
-    
+
+    <!-- JavaScript for password visibility toggle -->
+    <script>
+        function togglePassword() {
+            var passwordField = document.getElementById("password");
+            if (passwordField.type === "password") {
+                passwordField.type = "text"; // Show the password
+            } else {
+                passwordField.type = "password"; // Hide the password
+            }
+        }
+
+        // Auto-remove flash messages after 5 seconds
+        setTimeout(function() {
+            var flashMessages = document.querySelectorAll('.alert');
+            flashMessages.forEach(function(message) {
+                message.style.display = 'none';
+            });
+        }, 3000);  // 5000 milliseconds = 5 seconds
+    </script>
+
 </body>
+
 </html>

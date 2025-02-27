@@ -6,8 +6,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Home</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        /* Styles for the fade effect of the slider */
+        .slide {
+            display: none;
+            position: relative;
+        }
+        .fade {
+            animation: fadeEffect 1.5s ease-in-out forwards;
+        }
+        @keyframes fadeEffect {
+            0% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
 
+        /* Image sizing in cards */
+        .card img {
+            width: 100%;
+            height: auto;
+            object-fit: cover;  /* Ensures the image covers the space without distorting */
+        }
+          /* Flash messages container */
+          .flash-messages-container {
+            position: fixed;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1050;
+            width: auto;
+            padding: 10px;
+            text-align: center;
+        }
 
+        /* Style for each flash message */
+        .flash-message {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.5s ease-out;
+        }
+
+        .flash-message.alert-success {
+            background-color: green;
+        }
+
+        .flash-message.alert-danger {
+            background-color: red;
+        }
+
+        .flash-message.alert-warning {
+            background-color: orange;
+        }
+
+        .flash-message.hide {
+            opacity: 0;
+        }
+    </style>
 </head>
 
 <body>
@@ -23,7 +87,6 @@
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% endif %}
             </ul>
-
         </nav>
         <div class="profile">
             {% if session.get('username') %}
@@ -34,6 +97,19 @@
             <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Team Member 3">
         </div>
     </header>
+
+     <!-- Flash messages section -->
+     {% with messages = get_flashed_messages(with_categories=true) %}
+     {% if messages %}
+     <div class="flash-messages-container">
+         {% for category, message in messages %}
+         <div class="flash-message alert-{{ category }}">
+             {{ message }}
+         </div>
+         {% endfor %}
+     </div>
+     {% endif %}
+     {% endwith %}
 
     <!-- Slider Section -->
     <section class="slider">
@@ -48,7 +124,6 @@
         </div>
     </section>
 
-
     <!-- Cards Section -->
     <section class="cards">
         <div class="card">
@@ -57,12 +132,12 @@
             <p>Some description for the first card. It's a great place to show information.</p>
         </div>
         <div class="card">
-            <img src="{{url_for('static', filename='images/product2.jpg')}}" height="53%" alt="Card 2">
+            <img src="{{url_for('static', filename='images/product2.jpg')}}" alt="Card 2">
             <h3>Card Title 2</h3>
             <p>Some description for the second card. More details can be shown here.</p>
         </div>
         <div class="card">
-            <img src="{{url_for('static', filename='images/product3.jpg')}}" height="53%" alt="Card 3">
+            <img src="{{url_for('static', filename='images/product3.jpg')}}" alt="Card 3">
             <h3>Card Title 3</h3>
             <p>Description for the third card. It's a place to showcase content.</p>
         </div>
@@ -72,6 +147,7 @@
     <footer>
         <p>&copy; 2025 Your Website. All rights reserved.</p>
         <ul>
+            <!-- You can add actual links or remove them if not needed -->
             <li><a href="#">Privacy Policy</a></li>
             <li><a href="#">Terms of Service</a></li>
             <li><a href="#">Contact</a></li>
@@ -92,6 +168,13 @@
             slides[slideIndex - 1].style.display = "block";
             setTimeout(showSlides, 3000); // Change slide every 3 seconds
         }
+         // Flash message fade out effect after 3 seconds
+         setTimeout(function () {
+            const flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function (message) {
+                message.classList.add('hide');
+            });
+        }, 3000);
     </script>
 </body>
 

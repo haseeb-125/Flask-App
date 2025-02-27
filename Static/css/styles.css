@@ -68,6 +68,30 @@ form button {
 form button:hover {
     background-color: #555;
 }
+
+/* Example styles for alert messages */
+.alert {
+    padding: 10px;
+    margin: 15px 0;
+    border-radius: 5px;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.alert-warning {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+
 /* General styles */
 body {
     font-family: Arial, sans-serif;
@@ -215,3 +239,4 @@ footer ul li a {
 footer ul li a:hover {
     text-decoration: underline;
 }
+

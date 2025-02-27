@@ -6,41 +6,119 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sign Up</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <style>
+        /* Flash messages container */
+        .flash-messages-container {
+            position: fixed;
+            top: 0;
+            /* Position at the top */
+            left: 50%;
+            /* Center horizontally */
+            transform: translateX(-50%);
+            /* Adjust the position by 50% to truly center */
+            z-index: 1050;
+            /* Make sure the flash message is above other content */
+            width: auto;
+            /* Ensure the container doesn't take up the full width */
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* Style for each flash message */
+        .flash-message {
+            background-color: rgba(0, 0, 0, 0.8);
+            /* Optional: dark background */
+            color: white;
+            /* Text color */
+            padding: 10px 20px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            /* Optional: rounded corners */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Optional: subtle shadow */
+        }
+
+        /* Optional: Different styles for different categories of flash messages */
+        .flash-message.alert-success {
+            background-color: green;
+        }
+
+        .flash-message.alert-danger {
+            background-color: red;
+        }
+
+        .flash-message.alert-warning {
+            background-color: orange;
+        }
+
+        .flash-message {
+            transition: opacity 0.5s ease-out;
+        }
+
+        .flash-message.hide {
+            opacity: 0;
+        }
+    </style>
 </head>
 
 <body>
 
     <h1>Sign Up</h1>
-    <!-- Flash messages will be rendered in this hidden div -->
-    {% with messages = get_flashed_messages() %}
+
+    <!-- Flash messages section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-    <div id="flash-message" style="display:none;">{{ messages[0] }}</div>
+    <div class="flash-messages-container">
+        {% for category, message in messages %}
+        <div class="flash-message alert alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
     {% endif %}
     {% endwith %}
+
     <form method="POST">
+        <!-- Username Field -->
         <label for="username">Username:</label>
         <input type="text" id="username" name="username" required>
         <br><br>
+
+        <!-- Email Field -->
         <label for="email">Email:</label>
         <input type="email" id="email" name="email" required>
         <br><br>
+
+        <!-- Password Field -->
         <label for="password">Password:</label>
         <input type="password" id="password" name="password" required>
         <br><br>
+
+        <!-- Gender Dropdown -->
         <label for="gender">Gender:</label>
-        <input type="text" id="gender" name="gender" required>
+        <select id="gender" name="gender" required>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+            <option value="Other">Other</option>
+        </select>
         <br><br>
-        <button type="submit">Signup</button>
-        <p>If you have an account than <a href="{{ url_for('login') }}">Login</a>.</p>
+
+        <!-- Submit Button -->
+        <button type="submit">Sign Up</button>
+
+        <!-- Login Link -->
+        <p>If you already have an account, <a href="{{ url_for('login') }}">Login</a>.</p>
     </form>
-    <!-- Plain JavaScript to show the flash message -->
+
+    <!-- JavaScript for auto-removal of flash messages -->
     <script>
-        window.onsubmit = function () {
-            var flashMessage = document.getElementById("flash-message");
-            if (flashMessage) {
-                alert(flashMessage.innerText);  // Show the flash message in an alert box
-            }
-        };
+        // Function to remove flash messages after a delay (e.g., 5 seconds)
+        setTimeout(function() {
+            var flashMessages = document.querySelectorAll('.flash-message');
+            flashMessages.forEach(function(message) {
+                message.classList.add('hide');
+            });
+        }, 3000);  // 5000ms = 5 seconds
     </script>
 
 </body>
