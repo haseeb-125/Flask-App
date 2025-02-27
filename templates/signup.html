@@ -7,19 +7,118 @@
     <title>Sign Up</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
+        /* Base reset styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #6e7fef, #ab94e0);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        h1 {
+            font-size: 2rem;
+            color: #4CAF50;
+            margin-bottom: 20px;
+            font-weight: 600;
+            text-align: center;
+        }
+
+        .login-container {
+            background-color: #ffffff;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 40px 30px;
+            width: 100%;
+            max-width: 380px;
+            text-align: center;
+        }
+
+        .form-label {
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            text-align: left;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        select {
+            width: 100%;
+            padding: 12px;
+            margin: 10px 0 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        input[type="text"]:focus,
+        input[type="email"]:focus,
+        input[type="password"]:focus,
+        select:focus {
+            border-color: #4CAF50;
+            outline: none;
+            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+        }
+
+        /* Submit Button */
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow effect */
+        }
+
+        button:hover {
+            background-color: #45a049;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            background-color: #388e3c;
+            transform: translateY(0);
+        }
+
+        p {
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+
+        a {
+            color: #4CAF50;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
         /* Flash messages container */
         .flash-messages-container {
             position: fixed;
-            top: 0;
-            /* Position at the top */
+            top: 10px;
             left: 50%;
-            /* Center horizontally */
             transform: translateX(-50%);
-            /* Adjust the position by 50% to truly center */
             z-index: 1050;
-            /* Make sure the flash message is above other content */
             width: auto;
-            /* Ensure the container doesn't take up the full width */
             padding: 10px;
             text-align: center;
         }
@@ -27,18 +126,14 @@
         /* Style for each flash message */
         .flash-message {
             background-color: rgba(0, 0, 0, 0.8);
-            /* Optional: dark background */
             color: white;
-            /* Text color */
             padding: 10px 20px;
             margin-bottom: 10px;
             border-radius: 5px;
-            /* Optional: rounded corners */
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            /* Optional: subtle shadow */
+            transition: opacity 0.5s ease-out;
         }
 
-        /* Optional: Different styles for different categories of flash messages */
         .flash-message.alert-success {
             background-color: green;
         }
@@ -51,10 +146,6 @@
             background-color: orange;
         }
 
-        .flash-message {
-            transition: opacity 0.5s ease-out;
-        }
-
         .flash-message.hide {
             opacity: 0;
         }
@@ -63,62 +154,59 @@
 
 <body>
 
-    <h1>Sign Up</h1>
-
-    <!-- Flash messages section -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
     <div class="flash-messages-container">
+        <!-- Flash messages section -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
         {% for category, message in messages %}
         <div class="flash-message alert alert-{{ category }}">
             {{ message }}
         </div>
         {% endfor %}
+        {% endif %}
+        {% endwith %}
     </div>
-    {% endif %}
-    {% endwith %}
 
-    <form method="POST">
-        <!-- Username Field -->
-        <label for="username">Username:</label>
-        <input type="text" id="username" name="username" required>
-        <br><br>
+    <div class="login-container">
+        <h1>Sign Up</h1>
 
-        <!-- Email Field -->
-        <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <br><br>
+        <form method="POST">
+            <!-- Username Field -->
+            <label class="form-label" for="username">Username:</label>
+            <input type="text" id="username" name="username" required>
 
-        <!-- Password Field -->
-        <label for="password">Password:</label>
-        <input type="password" id="password" name="password" required>
-        <br><br>
+            <!-- Email Field -->
+            <label class="form-label" for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
 
-        <!-- Gender Dropdown -->
-        <label for="gender">Gender:</label>
-        <select id="gender" name="gender" required>
-            <option value="Male">Male</option>
-            <option value="Female">Female</option>
-            <option value="Other">Other</option>
-        </select>
-        <br><br>
+            <!-- Password Field -->
+            <label class="form-label" for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
 
-        <!-- Submit Button -->
-        <button type="submit">Sign Up</button>
+            <!-- Gender Dropdown -->
+            <label class="form-label" for="gender">Gender:</label>
+            <select id="gender" name="gender" required>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+            </select>
 
-        <!-- Login Link -->
-        <p>If you already have an account, <a href="{{ url_for('login') }}">Login</a>.</p>
-    </form>
+            <!-- Submit Button -->
+            <button type="submit" style="background-color: #4CAF50;">Sign Up</button>
+
+            <!-- Login Link -->
+            <p>If you already have an account, <a href="{{ url_for('login') }}">Login</a>.</p>
+        </form>
+    </div>
 
     <!-- JavaScript for auto-removal of flash messages -->
     <script>
-        // Function to remove flash messages after a delay (e.g., 5 seconds)
         setTimeout(function() {
             var flashMessages = document.querySelectorAll('.flash-message');
             flashMessages.forEach(function(message) {
                 message.classList.add('hide');
             });
-        }, 3000);  // 5000ms = 5 seconds
+        }, 5000);  // 5000ms = 5 seconds
     </script>
 
 </body>
