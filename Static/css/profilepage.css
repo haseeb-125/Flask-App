@@ -1,0 +1,212 @@
+/* General Styles */
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: #2c3e50;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    color: #3498db;
+}
+
+/* Blurred Header */
+.blur-header {
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+    backdrop-filter: blur(15px); /* Increased blur intensity */
+    border-radius: 20px; /* Rounded edges */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Light border for depth */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    padding: 10px 20px; /* Padding for spacing */
+    margin: 20px; /* Margin to separate from the page edges */
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Navigation Links */
+.blur-header nav ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+}
+
+.blur-header nav ul li {
+    margin-right: 20px;
+}
+
+.blur-header nav ul li a {
+    color: white; /* White text for better contrast */
+    text-decoration: none;
+    font-weight: bold;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    transition: color 0.3s ease;
+}
+
+.blur-header nav ul li a:hover {
+    color: #3498db; /* Highlight color on hover */
+}
+
+/* Profile Section */
+.profile-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.profile-container img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.profile-container img:hover {
+    transform: scale(1.1);
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: white; /* White text for better contrast */
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+
+.blur-dropdown {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background-color: rgba(255, 255, 255, 0.1);
+    /* Semi-transparent white background */
+    backdrop-filter: blur(10px);
+    /* Blur effect */
+    border-radius: 10px;
+    /* Rounded edges */
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    /* Light border for depth */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    /* Soft shadow */
+    min-width: 170px;
+    text-align: left;
+    overflow: hidden;
+    z-index: 1001; /
+}
+
+.blur-dropdown a {
+    display: block;
+    padding: 10px 15px;
+    color: white;
+    /* White text for better contrast */
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.blur-dropdown a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    /* Light hover effect */
+}
+
+.show {
+    display: block;
+}
+
+/* Blurred Card */
+/* Profile Card */
+.blur-card {
+    background-color: rgba(255, 255, 255, 0.1); /* Semi-transparent white background */
+    backdrop-filter: blur(15px); /* Increased blur intensity */
+    border-radius: 20px; /* Rounded edges */
+    border: 1px solid rgba(255, 255, 255, 0.2); /* Light border for depth */
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1); /* Soft shadow */
+    overflow: hidden; /* Ensures child elements respect rounded corners */
+    z-index: 1000; /* Ensure the profile card is below the dropdown menu */
+}
+
+#card_container1,
+#card_container2{
+
+    width: 70vw;
+}
+
+/* Card Header */
+.blur-card .card-header {
+    background-color: rgba(0, 0, 0, 0.2); /* Semi-transparent black background */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1); /* Light border */
+}
+
+/* Card Body */
+.blur-card .card-body {
+    color: white; /* White text for better contrast */
+}
+
+/* Buttons */
+.blur-card .btn-primary {
+    background-color: rgba(0, 123, 255, 0.8); /* Semi-transparent blue */
+    border: none;
+    border-radius: 10px; /* Rounded edges */
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.blur-card .btn-primary:hover {
+    background-color: rgba(0, 123, 255, 1); /* Solid blue on hover */
+}
+
+.blur-card .btn-danger {
+    background-color: rgba(220, 53, 69, 0.8); /* Semi-transparent red */
+    border: none;
+    border-radius: 10px; /* Rounded edges */
+    padding: 10px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.blur-card .btn-danger:hover {
+    background-color: rgba(220, 53, 69, 1); /* Solid red on hover */
+}
+
+/* Flash Messages */
+.flash-messages-container {
+    position: fixed;
+    top: 20px; /* Adjust as needed */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    width: auto;
+    text-align: center;
+}
+
+.flash-message {
+    background-color: rgba(0, 128, 0, 0.9); /* Green background for success */
+    color: white;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.5s ease-out;
+    display: inline-block;
+}
+
+.flash-message.alert-success {
+    background-color: rgba(0, 128, 0, 0.9); /* Green for success */
+}
+
+.flash-message.alert-danger {
+    background-color: rgba(255, 0, 0, 0.9); /* Red for errors */
+}
+
+.flash-message.alert-warning {
+    background-color: rgba(255, 165, 0, 0.9); /* Orange for warnings */
+}
+
+.flash-message.hide {
+    opacity: 0;
+}

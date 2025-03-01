@@ -4,23 +4,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile</title>
+    <title>Profile - Climate Action</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/profilepage.css') }}">
+    <style>
+        /* Background Image for Pages */
+        body {
+            background-image: url("{{ url_for('static', filename='images/nature-background.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            min-height: 100vh;
+        }
+
+        /* Overlay to improve readability */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Darker overlay for better contrast */
+            z-index: -1;
+        }
+
+        /* Ensure content is above the overlay */
+        .container,
+        .card {
+            position: relative;
+            z-index: 1;
+        }
+    </style>
 </head>
 
-<body>
-    {% if user %}
-    <p><strong>Username:</strong> {{ user.username }}</p>
-    <p><strong>Email:</strong> {{ user.email }}</p>
-    <p><strong>Gender:</strong> {{ user.gender }}</p> <!-- ✅ Show gender -->
-    {% else %}
-    <p>User data not available.</p>
-    {% endif %}
-    <h1>Welcome, {{ user['username'] }}!</h1>
-    <p>Email: {{ user['email'] }}</p>
+<body class="bg-light">
+    <!-- Blurred Header -->
+    <header class="blur-header">
+        <nav>
+            <ul>
+                <li><a href="{{ url_for('home') }}">Home</a></li>
+                <li><a href="{{ url_for('about_us') }}">About Us</a></li>
+                {% if session.get('username') %}
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                {% endif %}
+            </ul>
+        </nav>
 
-    <a href="{{ url_for('update_password') }}">Change Password</a>
-    <br><br>
-    <a href="{{ url_for('logout') }}">Logout</a>
+        <!-- Profile Section -->
+        <div class="profile-container" id="profile-section">
+            {% if session.get('username') %}
+            <span class="profile-name">{{ session.get('username') }}!</span>
+            <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Profile Picture" id="profile-pic">
+
+            <!-- Dropdown Menu -->
+            <div class="dropdown-menu blur-dropdown" id="dropdown-menu">
+                <a href="{{ url_for('profile') }}">View Profile</a>
+                <a href="{{ url_for('update_password') }}">Change Password</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
+            {% else %}
+            <p>Please <a href="{{ url_for('login') }}">login</a> to access more features.</p>
+            {% endif %}
+        </div>
+    </header>
+
+    <!-- Flash Messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages-container">
+        {% for category, message in messages %}
+        <div class="flash-message alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Blurred Card for Profile -->
+    <div id="card_container1" class="container mt-5">
+        <div id="card_container2" class="row justify-content-center">
+            <div class="col-md-6"> <!-- Reduced column size -->
+                <div class="card blur-card shadow-lg">
+                    <div class="card-header bg-transparent text-white">
+                        <h3 class="card-title mb-0">Profile</h3>
+                    </div>
+                    <div class="card-body">
+                        {% if user %}
+                        <div class="mb-4">
+                            <h4 class="text-center mb-4 text-white">Welcome, {{ user.username }}!</h4>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <p class="text-white"><strong>Username:</strong> {{ user.username }}</p>
+                                    <p class="text-white"><strong>Email:</strong> {{ user.email }}</p>
+                                    <p class="text-white"><strong>Gender:</strong> {{ user.gender }}</p>
+                                </div>
+                                <div class="col-md-6 text-center">
+                                    <img src="{{ url_for('static', filename='images/team2.jpg') }}"
+                                        alt="Profile Picture" class="img-fluid rounded-circle"
+                                        style="width: 150px; height: 150px;">
+                                </div>
+                            </div>
+                        </div>
+                        {% else %}
+                        <p class="text-center text-white">User data not available.</p>
+                        {% endif %}
+
+                        <div class="text-center mt-4">
+                            <a href="{{ url_for('update_password') }}" class="btn btn-primary me-2">Change Password</a>
+                            <a href="{{ url_for('logout') }}" class="btn btn-danger">Logout</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript for Dropdown -->
+    <script>
+        // Profile Picture Dropdown
+        document.getElementById('profile-section').addEventListener('click', function () {
+            let dropdown = document.getElementById('dropdown-menu');
+            dropdown.classList.toggle('show');
+        });
+
+        // Hide dropdown if clicked outside
+        window.addEventListener('click', function (event) {
+            if (!event.target.closest('#profile-section')) {
+                let dropdown = document.getElementById('dropdown-menu');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+
+        // Flash messages auto-hide
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => msg.classList.add('hide'));
+        }, 3000);
+    </script>
 </body>
 
 </html>

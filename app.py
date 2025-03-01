@@ -1,18 +1,36 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
+import random
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Required for flash messages
 
 
 # MongoDB Configuration
-app.config["MONGO_URI"] = "mongodb://localhost:27017/Flask"
+app.config["MONGO_URI"] = "mongodb://localhost:27017/Climate_DB"
 mongo = PyMongo(app)
+
+def ClimateData():
+    return {
+        "temperature": round(random.uniform(15, 35), 2),  # Temperature in °C
+        "humidity": random.randint(30, 80),  # Humidity in %
+        "air_quality": random.choice(["Good", "Moderate", "Poor", "Unhealthy"]),
+        "wind_speed": round(random.uniform(1, 15), 2),  # Wind Speed in km/h
+        "forecast": [
+            {"day": "Monday", "temp": random.randint(18, 30)},
+            {"day": "Tuesday", "temp": random.randint(18, 30)},
+            {"day": "Wednesday", "temp": random.randint(18, 30)},
+            {"day": "Thursday", "temp": random.randint(18, 30)},
+            {"day": "Friday", "temp": random.randint(18, 30)},
+        ],
+    }
 
 # Home Page Route
 @app.route('/')
 def home():
+
+    climate_data = ClimateData()
     # Check if user is logged in
     if 'username' not in session:
         return redirect(url_for('login'))
@@ -20,7 +38,7 @@ def home():
     # Retrieve the username from the session for greeting
     username = session['username']
     
-    return render_template('home.html', username=username)
+    return render_template('home.html', username=username , data=climate_data)
 
 # Sign Up Route
 

@@ -3,166 +3,253 @@ body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #f4f4f4;
+    background-color: #f4f4f9;
+    color: #333;
 }
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: #2c3e50;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+}
+
+a:hover {
+    color: #3498db;
+}
+
+/* Header Styles */
 header {
-    display: flex;               /* Make header a flex container */
-    justify-content: space-between; /* Space between navigation and profile */
-    align-items: center;         /* Align items vertically in the center */
-    padding: 10px 20px;          /* Padding for the header */
-    background-color:white;      /* Dark background for the header */
-    color:gray;
-    border-bottom: 1px solid gray;
-    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1000;
 }
 
 header nav ul {
     list-style: none;
     padding: 0;
+    margin: 0;
+    display: flex;
 }
 
 header nav ul li {
-    display: inline;
     margin-right: 20px;
 }
 
 header nav ul li a {
     color: gray;
-    text-decoration: none;
     font-weight: bold;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
-/* Profile container styling */
-.profile {
-    display: flex;               /* Use flexbox */
-    align-items: center;         /* Vertically align content (image and text) */
-    justify-content: flex-end; /* Align items to the left */
-    gap: 5px;                   /* Add space between the text and image */
+/* Profile Section */
+.profile-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1001;
 }
 
-/* Profile text styling */
-.profile p {
-    font-size: 1.2em;      /* Adjust text size */
-    margin: 0;             /* Remove any default margins */
-    color:gray;  
-    font-weight: bold;        /* Optional: change text color */
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;   
+.profile-container img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 10px;
+    transition: transform 0.2s ease-in-out;
 }
 
-/* Profile image styling */
-.profile img {
-    width: 40px;            /* Set image width */
-    height: 40px;           /* Set image height */
-    border-radius: 50%;     /* Make image circular */
-    border: 3px solid rgb(60, 238, 25);/* Optional: add a border around the image */
+.profile-container img:hover {
+    transform: scale(1.1);
 }
 
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: gray;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
 
-/* About Us Section */
+/* Dropdown Menu */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 170px;
+    text-align: left;
+    overflow: hidden;
+    z-index: 1002;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 15px;
+    color: #333;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.dropdown-menu a:hover {
+    background: #f1f1f1;
+}
+
+.show {
+    display: block;
+}
+
+/* Flash Messages */
+.alert {
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.alert-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.alert-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* About Intro Section */
 .about-intro {
     text-align: center;
-    padding: 30px;
-    background-color: #fff;
-    margin-top: 20px;
+    padding: 50px 20px;
+    background-color: #ecf0f1;
+
 }
 
 .about-intro h1 {
     font-size: 2.5em;
-    color: #333;
+    margin-bottom: 20px;
 }
 
 .about-intro p {
     font-size: 1.2em;
-    color: #666;
+    max-width: 800px;
+    margin: 0 auto;
 }
 
-/* Mission Statement Section */
+/* Mission Section */
 .mission {
-    background-color: #f9f9f9;
-    padding: 40px 20px;
-    text-align: center;
-}
-
-.mission h2 {
-    font-size: 2em;
-    color: #333;
-}
-
-.mission p {
-    font-size: 1.2em;
-    color: #555;
-}
-
-/* Team Section */
-.team {
-    padding: 40px 10px;
+    padding: 50px 20px;
     text-align: center;
     background-color: #fff;
 }
 
-.team h2 {
-    font-size: 2.5em;
-    color: #333;
+.mission h2 {
+    font-size: 2em;
     margin-bottom: 20px;
 }
 
-.team-member {
-    display: inline-block;
-    width: 30%;
-    margin: 10px;
+.mission p {
+    font-size: 1.1em;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+/* Team Section */
+.team {
+    padding: 50px 20px;
+    background-color: #ecf0f1;
     text-align: center;
 }
 
+.team h2 {
+    font-size: 2em;
+    margin-bottom: 40px;
+}
+
+.team-grid {
+    display: flex;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+}
+
+.team-member {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    width: 250px;
+}
+
 .team-member img {
-    width: 150px;
-    height: 150px;
-    border-radius: 50%;
+    width: 100%;
+    border-radius: 10px;
     margin-bottom: 15px;
 }
 
 .team-member h3 {
     font-size: 1.5em;
-    color: #333;
+    margin-bottom: 10px;
 }
 
 .team-member p {
+    font-size: 1em;
     color: #666;
 }
 
 /* Contact Section */
 .contact {
-    background-color: #f9f9f9;
-    padding: 40px 20px;
+    padding: 50px 20px;
     text-align: center;
+    background-color: #fff;
 }
 
 .contact h2 {
-    font-size: 2.5em;
-    color: #333;
+    font-size: 2em;
     margin-bottom: 20px;
 }
 
 .contact p {
-    font-size: 1.2em;
-    color: #555;
+    font-size: 1.1em;
+    margin-bottom: 20px;
 }
 
 .contact ul {
     list-style: none;
     padding: 0;
-    font-size: 1.2em;
-    color: #333;
 }
 
 .contact ul li {
+    font-size: 1em;
     margin-bottom: 10px;
 }
 
-/* Footer Section */
+/* Footer Styles */
 footer {
-    background-color: #333;
-    color: white;
+    background-color: #2c3e50;
+    color: #fff;
     text-align: center;
-    padding: 20px;
+    padding: 20px 0;
+    margin-top: 50px;
+}
+
+footer p {
+    margin: 0;
+    font-size: 0.9em;
 }

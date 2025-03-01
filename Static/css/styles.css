@@ -1,242 +1,218 @@
+/* General Styles */
 body {
     font-family: Arial, sans-serif;
     margin: 0;
     padding: 0;
     background-color: #f4f4f9;
-}
-
-header {
-    background-color: #333;
-    color: white;
-    padding: 1rem;
-    text-align: center;
-}
-
-header nav ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-header nav ul li {
-    display: inline;
-    margin: 0 10px;
-}
-
-header nav ul li a {
-    color: white;
-    text-decoration: none;
-}
-
-h1 {
-    text-align: center;
     color: #333;
 }
 
-form {
-    display: block;
-    max-width: 400px;
-    margin: 20px auto;
-    padding: 20px;
-    background-color: white;
-    border-radius: 5px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+    color: #2c3e50;
 }
 
-form label {
-    display: block;
-    margin: 10px 0 5px;
+a {
+    text-decoration: none;
+    color: inherit;
 }
 
-form input {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 15px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
+a:hover {
+    color: #3498db;
 }
 
-form button {
-    width: 100%;
-    padding: 10px;
-    background-color: #333;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-}
-
-form button:hover {
-    background-color: #555;
-}
-
-/* Example styles for alert messages */
-.alert {
-    padding: 10px;
-    margin: 15px 0;
-    border-radius: 5px;
-}
-
-.alert-success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.alert-danger {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-.alert-warning {
-    background-color: #fff3cd;
-    color: #856404;
-}
-
-
-/* General styles */
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    background-color: #f4f4f4;
-}
-
+/* Header Styles */
 header {
-    display: flex;               /* Make header a flex container */
-    justify-content: space-between; /* Space between navigation and profile */
-    align-items: center;         /* Align items vertically in the center */
-    padding: 10px 20px;          /* Padding for the header */
-    background-color:white;      /* Dark background for the header */
-    color:gray;
-    
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 20px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: relative;
+    z-index: 1000;
 }
 
 header nav ul {
     list-style: none;
     padding: 0;
+    margin: 0;
+    display: flex;
 }
 
 header nav ul li {
-    display: inline;
     margin-right: 20px;
 }
 
 header nav ul li a {
     color: gray;
-    text-decoration: none;
     font-weight: bold;
     font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
 }
 
-/* Profile container styling */
-.profile {
-    display: flex;               /* Use flexbox */
-    align-items: center;         /* Vertically align content (image and text) */
-    justify-content: flex-end; /* Align items to the left */
-    gap: 5px;                   /* Add space between the text and image */
-}
-
-/* Profile text styling */
-.profile p {
-    font-size: 1.2em;      /* Adjust text size */
-    margin: 0;             /* Remove any default margins */
-    color:gray;  
-    font-weight: bold;        /* Optional: change text color */
-    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;   
-}
-
-/* Profile image styling */
-.profile img {
-    width: 40px;            /* Set image width */
-    height: 40px;           /* Set image height */
-    border-radius: 50%;     /* Make image circular */
-    border: 3px solid rgb(60, 238, 25);/* Optional: add a border around the image */
-}
-
-h1 {
-    text-align: center;
-    margin: 20px 0;
-}
-
-/* Slider styles */
-.slider {
+/* Profile Section */
+.profile-container {
     position: relative;
-    max-width: 100%;
-    margin: auto;
-    overflow: hidden;
-    
-}
-
-.slide {
-    display: none;
-}
-
-.slide img {
-    width: 100%;
-    height:70vh;
-}
-
-/* Cards Section */
-.cards {
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    padding: 50px 10px;
+    align-items: center;
+    cursor: pointer;
+    z-index: 1001;
+}
+
+.profile-container img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    margin-left: 10px;
+    transition: transform 0.2s ease-in-out;
+}
+
+.profile-container img:hover {
+    transform: scale(1.1);
+}
+
+.profile-name {
+    font-size: 16px;
+    font-weight: bold;
+    color: gray;
+    font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+}
+
+/* Dropdown Menu */
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    top: 60px;
+    right: 0;
+    background: white;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    min-width: 170px;
+    text-align: left;
+    overflow: hidden;
+    z-index: 1002;
+}
+
+.dropdown-menu a {
+    display: block;
+    padding: 10px 15px;
+    color: #333;
+    text-decoration: none;
+    transition: background 0.3s;
+}
+
+.dropdown-menu a:hover {
+    background: #f1f1f1;
+}
+
+.show {
+    display: block;
+}
+
+/* Flash Messages */
+.flash-messages-container {
+    position: fixed;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1050;
+    width: auto;
+    padding: 10px;
     text-align: center;
+}
+
+.flash-message {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: opacity 0.5s ease-out;
+}
+
+.flash-message.alert-success {
+    background-color: green;
+}
+
+.flash-message.alert-danger {
+    background-color: red;
+}
+
+.flash-message.alert-warning {
+    background-color: orange;
+}
+
+.flash-message.hide {
+    opacity: 0;
+}
+
+/* Main Content Styles */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
 .card {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    width: 300px;
-    padding: 20px;
-    text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.card:hover {
-    transform: scale(1.05);
-}
-
-.card img {
-    width: 100%;
+    background: white;
     border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+    text-align: center;
 }
 
-.card h3 {
-    margin-top: 15px;
-    font-size: 1.2em;
+.card h5 {
+    font-size: 18px;
+    margin-bottom: 10px;
 }
 
 .card p {
-    font-size: 0.9em;
-    color: #666;
+    font-size: 24px;
+    font-weight: bold;
+    margin: 0;
 }
 
-/* Footer Section */
+/* Footer Styles */
 footer {
-    background-color: #333;
+    background-color: #222;
     color: white;
+    padding: 20px 0;
+    margin-top: 40px;
     text-align: center;
-    padding: 20px;
+}
+
+footer p {
+    margin: 0;
+    font-size: 14px;
+    font-weight: 500;
 }
 
 footer ul {
     list-style: none;
     padding: 0;
+    margin-top: 10px;
 }
 
 footer ul li {
     display: inline;
-    margin: 0 10px;
+    margin: 0 15px;
 }
 
 footer ul li a {
-    color: white;
+    color: #ddd;
     text-decoration: none;
+    font-size: 14px;
+    transition: color 0.3s ease-in-out;
 }
 
 footer ul li a:hover {
-    text-decoration: underline;
+    color: #ffcc00;
 }
-

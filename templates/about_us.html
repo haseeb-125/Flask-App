@@ -4,8 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About Us</title>
+    <title>About Us - Climate Action</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/aboutus.css') }}">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&family=Merriweather:wght@400;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
@@ -13,65 +16,74 @@
         <nav>
             <ul>
                 <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-                <li><a href="{{ url_for('login') }}">Login</a></li>
                 <li><a href="{{ url_for('about_us') }}">About Us</a></li>
                 {% if session.get('username') %}
-                <!-- Show Logout button only if user is logged in -->
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% endif %}
             </ul>
         </nav>
 
-        <!-- Flash messages section -->
-        {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">
-                        {{ message }}
-                    </div>
-                {% endfor %}
-            {% endif %}
-        {% endwith %}
-
-        <div class="profile">
+        <!-- Profile Section -->
+        <div class="profile-container" id="profile-section">
             {% if session.get('username') %}
-            <p>Welcome, {{ session.get('username') }}!</p>
+            <span class="profile-name">{{ session.get('username') }}!</span>
+            <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Profile Picture" id="profile-pic">
+
+            <!-- Dropdown Menu -->
+            <div class="dropdown-menu" id="dropdown-menu">
+                <a href="{{ url_for('profile') }}">View Profile</a>
+                <a href="{{ url_for('update_password') }}">Change Password</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
             {% else %}
             <p>Please <a href="{{ url_for('login') }}">login</a> to access more features.</p>
             {% endif %}
-            <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Team Member 3">
         </div>
     </header>
 
+    <!-- Flash messages section -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    {% for category, message in messages %}
+    <div class="alert alert-{{ category }}">
+        {{ message }}
+    </div>
+    {% endfor %}
+    {% endif %}
+    {% endwith %}
+
     <section class="about-intro">
         <h1>About Us</h1>
-        <p>We are a team of passionate developers working to build awesome applications.</p>
+        <p>We are a dedicated team of climate activists, scientists, and developers working together to combat climate
+            change and create a sustainable future.</p>
     </section>
 
     <!-- Mission Statement Section -->
     <section class="mission">
         <h2>Our Mission</h2>
-        <p>Our mission is to create meaningful and user-friendly software that solves real-world problems and makes a positive impact.</p>
+        <p>Our mission is to empower individuals and organizations with the tools and knowledge needed to reduce their
+            carbon footprint and advocate for environmental justice.</p>
     </section>
 
     <!-- Team Section -->
     <section class="team">
         <h2>Meet Our Team</h2>
-        <div class="team-member">
-            <img src="{{ url_for('static', filename='images/team1.jpg') }}" alt="Team Member 1">
-            <h3>John Doe</h3>
-            <p>CEO & Founder</p>
-        </div>
-        <div class="team-member">
-            <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Team Member 2">
-            <h3>Jane Smith</h3>
-            <p>Lead Developer</p>
-        </div>
-        <div class="team-member">
-            <img src="{{ url_for('static', filename='images/team3.jpg') }}" alt="Team Member 3">
-            <h3>Mike Johnson</h3>
-            <p>UI/UX Designer</p>
+        <div class="team-grid">
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='images/team1.jpg') }}" alt="Team Member 1">
+                <h3>Dr. Emily Carter</h3>
+                <p>Climate Scientist</p>
+            </div>
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Team Member 2">
+                <h3>Alex Green</h3>
+                <p>Lead Developer</p>
+            </div>
+            <div class="team-member">
+                <img src="{{ url_for('static', filename='images/team3.jpg') }}" alt="Team Member 3">
+                <h3>Sarah Lee</h3>
+                <p>Environmental Advocate</p>
+            </div>
         </div>
     </section>
 
@@ -80,14 +92,32 @@
         <h2>Contact Us</h2>
         <p>If you have any questions or want to collaborate with us, feel free to reach out:</p>
         <ul>
-            <li>Email: contact@ourwebsite.com</li>
+            <li>Email: contact@climateaction.org</li>
             <li>Phone: (123) 456-7890</li>
         </ul>
     </section>
 
     <footer>
-        <p>&copy; 2025 Your Website. All rights reserved.</p>
+        <p>&copy; 2025 Climate Action. All rights reserved.</p>
     </footer>
+
+    <!-- JavaScript for Dropdown Menu -->
+    <script>
+        // Toggle dropdown menu on profile picture click
+        document.getElementById('profile-pic').addEventListener('click', function () {
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            dropdownMenu.style.display = dropdownMenu.style.display === 'block' ? 'none' : 'block';
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', function (event) {
+            const dropdownMenu = document.getElementById('dropdown-menu');
+            const profileSection = document.getElementById('profile-section');
+            if (!profileSection.contains(event.target)) {
+                dropdownMenu.style.display = 'none';
+            }
+        });
+    </script>
 </body>
 
 </html>

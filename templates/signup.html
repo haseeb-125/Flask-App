@@ -4,159 +4,183 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sign Up</title>
+    <title>Sign Up - Climate Action</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <style>
-        /* Base reset styles */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
+        /* Background Image for Pages */
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #6e7fef, #ab94e0);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background-image: url("{{ url_for('static', filename='images/nature-background2.jpg') }}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
             min-height: 100vh;
-            color: #333;
         }
 
-        h1 {
-            font-size: 2rem;
-            color: #4CAF50;
-            margin-bottom: 20px;
-            font-weight: 600;
-            text-align: center;
-        }
-
-        .login-container {
-            background-color: #ffffff;
-            border-radius: 10px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
-            padding: 40px 30px;
+        /* Overlay to improve readability */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
             width: 100%;
-            max-width: 380px;
-            text-align: center;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            /* Darker overlay for better contrast */
+            z-index: -1;
         }
 
-        .form-label {
-            font-size: 0.9rem;
-            margin-bottom: 8px;
-            text-align: left;
-            display: block;
+        /* Ensure content is above the overlay */
+        .container,
+        .card {
+            position: relative;
+            z-index: 1;
         }
 
-        input[type="text"],
-        input[type="email"],
-        input[type="password"],
-        select {
-            width: 100%;
-            padding: 12px;
-            margin: 10px 0 20px;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-            font-size: 1rem;
-            box-sizing: border-box;
-            transition: all 0.3s ease;
+        /* Blurred Card */
+        .blur-card {
+            background-color: rgba(255, 255, 255, 0.1);
+            /* Semi-transparent white background */
+            backdrop-filter: blur(15px);
+            /* Increased blur intensity */
+            border-radius: 20px;
+            /* Rounded edges */
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            /* Light border for depth */
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            /* Soft shadow */
+            overflow: hidden;
+            /* Ensures child elements respect rounded corners */
         }
 
-        input[type="text"]:focus,
-        input[type="email"]:focus,
-        input[type="password"]:focus,
-        select:focus {
-            border-color: #4CAF50;
-            outline: none;
-            box-shadow: 0 0 8px rgba(76, 175, 80, 0.3);
+        /* Card Header */
+        .blur-card .card-header {
+            background-color: rgba(0, 0, 0, 0.2);
+            /* Semi-transparent black background */
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            /* Light border */
         }
 
-        /* Submit Button */
-        button {
-            width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
+        /* Card Body */
+        .blur-card .card-body {
             color: white;
+            /* White text for better contrast */
+        }
+
+        /* Input Group (Password Field + Eye Icon) */
+        .input-group {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        /* Password Input Field */
+        .input-group input[type="password"],
+        .input-group input[type="text"] {
+            width: 100%;
+            padding-right: 40px;
+            /* Add space for the eye icon */
+        }
+
+        /* Eye Icon Button */
+        .input-group .toggle-password {
+            position: absolute;
+            right: 10px;
+            background: none;
             border: none;
-            border-radius: 8px;
-            font-size: 1.1rem;
             cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            /* Shadow effect */
+            padding: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #6c757d;
+            /* Default color for the eye icon */
+            transition: color 0.3s ease;
         }
 
-        button:hover {
-            background-color: #45a049;
-            transform: translateY(-2px);
-        }
-
-        button:active {
-            background-color: #388e3c;
-            transform: translateY(0);
-        }
-
-        p {
-            font-size: 0.9rem;
-            margin-top: 10px;
-        }
-
-        a {
+        /* Eye Icon Button Hover */
+        .input-group .toggle-password:hover {
             color: #4CAF50;
-            text-decoration: none;
-            transition: all 0.3s ease;
+            /* Change color on hover */
         }
 
-        a:hover {
-            text-decoration: underline;
+        /* Bootstrap Icons */
+        .bi-eye,
+        .bi-eye-slash {
+            font-size: 1.2rem;
+            /* Adjust icon size */
         }
 
-        /* Flash messages container */
+        /* Password Strength Indicator */
+        #passwordStrength {
+            font-size: 0.9em;
+            font-weight: bold;
+            margin-top: -10px;
+            margin-bottom: 10px;
+        }
+
+        /* Flash Messages */
         .flash-messages-container {
             position: fixed;
-            top: 10px;
+            top: 20px;
             left: 50%;
             transform: translateX(-50%);
             z-index: 1050;
-            width:25vw;
-            padding: 10px;
+            width:20vw;
             text-align: center;
         }
 
-        /* Style for each flash message */
         .flash-message {
-            background-color: rgba(0, 0, 0, 0.8);
+            background-color: rgba(0, 128, 0, 0.9);
+            /* Green background for success */
             color: white;
             padding: 10px 20px;
             margin-bottom: 10px;
             border-radius: 5px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             transition: opacity 0.5s ease-out;
+            display: inline-block;
         }
 
         .flash-message.alert-success {
-            background-color: green;
+            background-color: rgba(0, 128, 0, 0.9);
+            /* Green for success */
         }
 
         .flash-message.alert-danger {
-            background-color: red;
+            background-color: rgba(255, 0, 0, 0.9);
+            /* Red for errors */
         }
 
         .flash-message.alert-warning {
-            background-color: orange;
+            background-color: rgba(255, 165, 0, 0.9);
+            /* Orange for warnings */
         }
 
         .flash-message.hide {
             opacity: 0;
         }
+
+        /* Form Label Styling */
+        .form-label {
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: white;
+            /* White text for better contrast */
+            margin-bottom: 8px;
+            text-align: left;
+            /* Align labels to the left */
+            display: block;
+            /* Ensure labels take up the full width */
+        }
     </style>
 </head>
 
-<body>
-
+<body class="bg-light">
+    <!-- Flash Messages -->
     <div class="flash-messages-container">
-        <!-- Flash messages section -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
         <div class="flash-messages-container">
@@ -168,54 +192,105 @@
         </div>
         {% endif %}
         {% endwith %}
-
     </div>
 
-    <div class="login-container">
-        <h1>Sign Up</h1>
+    <!-- Blurred Card for Sign Up Form -->
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-md-6">
+                <div class="card blur-card shadow-lg">
+                    <div class="card-header bg-transparent text-white">
+                        <h3 class="card-title mb-0">Sign Up</h3>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" id="signupForm">
+                            <!-- Username Field -->
+                            <div class="mb-3">
+                                <label for="username" class="form-label text-white">Username:</label>
+                                <input type="text" id="username" name="username" class="form-control" required>
+                            </div>
 
-        <form method="POST">
-            <!-- Username Field -->
-            <label class="form-label" for="username">Username:</label>
-            <input type="text" id="username" name="username" required>
+                            <!-- Email Field -->
+                            <div class="mb-3">
+                                <label for="email" class="form-label text-white">Email:</label>
+                                <input type="email" id="email" name="email" class="form-control" required>
+                            </div>
 
-            <!-- Email Field -->
-            <label class="form-label" for="email">Email:</label>
-            <input type="email" id="email" name="email" required>
+                            <!-- Password Field -->
+                            <div class="mb-3">
+                                <label for="password" class="form-label text-white">Password:</label>
+                                <div class="input-group">
+                                    <input type="password" id="password" name="password" class="form-control" required>
+                                    <button type="button" class="toggle-password">
+                                        <i class="bi bi-eye"></i> <!-- Bootstrap Icons for eye icon -->
+                                    </button>
+                                </div>
+                                <div id="passwordStrength" class="mt-2"></div> <!-- Password strength indicator -->
+                            </div>
 
-            <!-- Password Field -->
-            <label class="form-label" for="password">Password:</label>
-            <input type="password" id="password" name="password" required>
+                            <!-- Gender Dropdown -->
+                            <div class="mb-3">
+                                <label for="gender" class="form-label text-white">Gender:</label>
+                                <select id="gender" name="gender" class="form-control" required>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
 
-            <!-- Gender Dropdown -->
-            <label class="form-label" for="gender">Gender:</label>
-            <select id="gender" name="gender" required>
-                <option value="Male">Male</option>
-                <option value="Female">Female</option>
-                <option value="Other">Other</option>
-            </select>
-            <!-- Submit Button -->
-            <button type="submit" style="background-color: #4CAF50;">Sign Up</button>
-
-            <!-- Login Link -->
-            <p>If you already have an account, <a href="{{ url_for('login') }}">Login</a>.</p>
-        </form>
+                            <!-- Submit Button -->
+                            <div class="text-center">
+                                <button type="submit" class="btn btn-primary me-2">Sign Up</button>
+                                <a href="{{ url_for('login') }}" class="btn btn-secondary">Login</a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- JavaScript for auto-removal of flash messages -->
+    <!-- JavaScript for Interactivity -->
     <script>
-        document.addEventListener("DOMContentLoaded", function () {
-            setTimeout(function () {
-                document.querySelectorAll(".flash-message").forEach(function (msg) {
-                    msg.style.transition = "opacity 0.5s";
-                    msg.style.opacity = "0";
-                    setTimeout(() => msg.remove(), 500);  // Remove after fade out
-                });
-            }, 4000); // Hide after 4 seconds
+        // Toggle Password Visibility
+        document.querySelectorAll('.toggle-password').forEach(button => {
+            button.addEventListener('click', function () {
+                const input = this.previousElementSibling;
+                const type = input.getAttribute('type') === 'password' ? 'text' : 'password';
+                input.setAttribute('type', type);
+                this.querySelector('i').classList.toggle('bi-eye');
+                this.querySelector('i').classList.toggle('bi-eye-slash');
+            });
         });
-    </script>
-    
 
+        // Password Strength Indicator
+        const passwordInput = document.getElementById('password');
+        const passwordStrength = document.getElementById('passwordStrength');
+
+        passwordInput.addEventListener('input', function () {
+            const password = this.value;
+            const strength = checkPasswordStrength(password);
+            passwordStrength.textContent = `Password Strength: ${strength}`;
+            passwordStrength.style.color = strength === 'Weak' ? 'red' : strength === 'Medium' ? 'orange' : 'green';
+        });
+
+        function checkPasswordStrength(password) {
+            if (password.length < 8) return 'Weak';
+            if (/[A-Z]/.test(password) && /[0-9]/.test(password) && /[^A-Za-z0-9]/.test(password)) return 'Strong';
+            return 'Medium';
+        }
+
+        // // Auto-remove Flash Messages
+        // document.addEventListener("DOMContentLoaded", function () {
+        //     setTimeout(function () {
+        //         document.querySelectorAll(".flash-message").forEach(function (msg) {
+        //             msg.style.transition = "opacity 0.5s";
+        //             msg.style.opacity = "0";
+        //             setTimeout(() => msg.remove(), 500);  // Remove after fade out
+        //         });
+        //     }, 4000); // Hide after 4 seconds
+        // });
+    </script>
 </body>
 
 </html>
