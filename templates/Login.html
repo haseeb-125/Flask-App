@@ -137,19 +137,68 @@
             background-color: #f8d7da;
             color: #721c24;
         }
+
+        /* Flash messages styling */
+        .flash-messages-container {
+            position: fixed;
+            top: 10px;
+            /* Position at the top */
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            /* Ensure it's above other elements */
+            width: auto;
+            padding: 10px;
+            text-align: center;
+        }
+
+        /* Flash message styles */
+        .flash-message {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 12px 20px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: opacity 0.5s ease-out;
+        }
+
+        /* Flash message colors based on category */
+        .flash-message.alert-success {
+            background-color: green;
+        }
+
+        .flash-message.alert-danger {
+            background-color: red;
+        }
+
+        .flash-message.alert-warning {
+            background-color: orange;
+        }
+
+        /* Hide flash messages after 5 seconds */
+        .flash-message.hide {
+            opacity: 0;
+        }
     </style>
 </head>
 
 <body>
 
     <!-- Flash messages section -->
-    {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-    <div class="alert alert-{{ category }}">
-        {{ message }}
+    <!-- Flash Messages at the Top -->
+    <div class="flash-messages-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="flash-message alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
     </div>
-    {% endif %}
-    {% endwith %}
+
 
     <!-- Login Form -->
     <div class="login-container">
@@ -172,6 +221,14 @@
     </div>
 
     <script>
+        // Auto-hide flash messages after 5 seconds
+    setTimeout(function () {
+        var flashMessages = document.querySelectorAll('.flash-message');
+        flashMessages.forEach(function (message) {
+            message.classList.add('hide');
+        });
+    }, 5000);
+
         // Toggle password visibility
         function togglePassword() {
             var passwordField = document.getElementById("password");

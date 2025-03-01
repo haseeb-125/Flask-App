@@ -83,7 +83,8 @@
             font-size: 1.1rem;
             cursor: pointer;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Shadow effect */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            /* Shadow effect */
         }
 
         button:hover {
@@ -118,7 +119,7 @@
             left: 50%;
             transform: translateX(-50%);
             z-index: 1050;
-            width: auto;
+            width:25vw;
             padding: 10px;
             text-align: center;
         }
@@ -158,13 +159,16 @@
         <!-- Flash messages section -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-        {% for category, message in messages %}
-        <div class="flash-message alert alert-{{ category }}">
-            {{ message }}
+        <div class="flash-messages-container">
+            {% for category, message in messages %}
+            <div class="flash-message alert-{{ category }}">
+                {{ message }}
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
         {% endif %}
         {% endwith %}
+
     </div>
 
     <div class="login-container">
@@ -190,7 +194,6 @@
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
             </select>
-
             <!-- Submit Button -->
             <button type="submit" style="background-color: #4CAF50;">Sign Up</button>
 
@@ -201,13 +204,17 @@
 
     <!-- JavaScript for auto-removal of flash messages -->
     <script>
-        setTimeout(function() {
-            var flashMessages = document.querySelectorAll('.flash-message');
-            flashMessages.forEach(function(message) {
-                message.classList.add('hide');
-            });
-        }, 5000);  // 5000ms = 5 seconds
+        document.addEventListener("DOMContentLoaded", function () {
+            setTimeout(function () {
+                document.querySelectorAll(".flash-message").forEach(function (msg) {
+                    msg.style.transition = "opacity 0.5s";
+                    msg.style.opacity = "0";
+                    setTimeout(() => msg.remove(), 500);  // Remove after fade out
+                });
+            }, 4000); // Hide after 4 seconds
+        });
     </script>
+    
 
 </body>
 

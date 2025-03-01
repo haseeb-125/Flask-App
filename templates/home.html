@@ -12,16 +12,20 @@
             display: none;
             position: relative;
         }
+
         .fade {
             animation: fadeEffect 1.5s ease-in-out forwards;
         }
+
         @keyframes fadeEffect {
             0% {
                 opacity: 0;
             }
+
             50% {
                 opacity: 1;
             }
+
             100% {
                 opacity: 0;
             }
@@ -31,10 +35,78 @@
         .card img {
             width: 100%;
             height: auto;
-            object-fit: cover;  /* Ensures the image covers the space without distorting */
+            object-fit: cover;
         }
-          /* Flash messages container */
-          .flash-messages-container {
+
+/* Profile Section */
+.profile-container {
+        position: relative;
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        z-index: 1001; /* Ensure it's above the slider */
+    }
+
+    .profile-container img {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        margin-left: 10px;
+        transition: transform 0.2s ease-in-out;
+    }
+
+    .profile-container img:hover {
+        transform: scale(1.1);
+    }
+
+    .profile-name {
+        font-size: 16px;
+        font-weight: bold;
+        color: gray;
+        font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+
+    }
+
+    /* Dropdown Menu */
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 60px;
+        right: 0;
+        background: white;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        min-width: 150px;
+        text-align: left;
+        overflow: hidden;
+        z-index: 1002; /* Higher than the slider */
+    }
+
+    .dropdown-menu a {
+        display: block;
+        padding: 10px 15px;
+        color: #333;
+        text-decoration: none;
+        transition: background 0.3s;
+    }
+
+    .dropdown-menu a:hover {
+        background: #f1f1f1;
+    }
+
+    .show {
+        display: block;
+    }
+
+    /* Ensure the header is above other elements */
+    header {
+        position: relative;
+        z-index: 1000; /* Higher than the slider */
+    }
+
+        /* Flash Messages */
+        .flash-messages-container {
             position: fixed;
             top: 0;
             left: 50%;
@@ -45,7 +117,6 @@
             text-align: center;
         }
 
-        /* Style for each flash message */
         .flash-message {
             background-color: rgba(0, 0, 0, 0.8);
             color: white;
@@ -79,37 +150,43 @@
         <nav>
             <ul>
                 <li><a href="{{ url_for('home') }}">Home</a></li>
-                <li><a href="{{ url_for('signup') }}">Sign Up</a></li>
-                <li><a href="{{ url_for('login') }}">Login</a></li>
                 <li><a href="{{ url_for('about_us') }}">About Us</a></li>
                 {% if session.get('username') %}
-                <!-- Show Logout button only if user is logged in -->
                 <li><a href="{{ url_for('logout') }}">Logout</a></li>
                 {% endif %}
             </ul>
         </nav>
-        <div class="profile">
+
+        <!-- Profile Section -->
+        <div class="profile-container" id="profile-section">
             {% if session.get('username') %}
-            <p>Welcome, {{ session.get('username') }}!</p>
+            <span class="profile-name">{{ session.get('username')}}!</span>
+            <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Profile Picture" id="profile-pic">
+
+            <!-- Dropdown Menu -->
+            <div class="dropdown-menu" id="dropdown-menu">
+                <a href="{{ url_for('profile') }}">View Profile</a>
+                <a href="{{ url_for('update_password') }}">Settings</a>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            </div>
             {% else %}
             <p>Please <a href="{{ url_for('login') }}">login</a> to access more features.</p>
             {% endif %}
-            <img src="{{ url_for('static', filename='images/team2.jpg') }}" alt="Team Member 3">
         </div>
     </header>
 
-     <!-- Flash messages section -->
-     {% with messages = get_flashed_messages(with_categories=true) %}
-     {% if messages %}
-     <div class="flash-messages-container">
-         {% for category, message in messages %}
-         <div class="flash-message alert-{{ category }}">
-             {{ message }}
-         </div>
-         {% endfor %}
-     </div>
-     {% endif %}
-     {% endwith %}
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages-container">
+        {% for category, message in messages %}
+        <div class="flash-message alert-{{ category }}">
+            {{ message }}
+        </div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
 
     <!-- Slider Section -->
     <section class="slider">
@@ -143,39 +220,54 @@
         </div>
     </section>
 
-    <!-- Footer Section -->
+    <!-- Footer -->
     <footer>
         <p>&copy; 2025 Your Website. All rights reserved.</p>
         <ul>
-            <!-- You can add actual links or remove them if not needed -->
             <li><a href="#">Privacy Policy</a></li>
             <li><a href="#">Terms of Service</a></li>
             <li><a href="#">Contact</a></li>
         </ul>
     </footer>
 
+    <!-- JavaScript -->
     <script>
-        let slideIndex = 0;
-        showSlides();
+        // Profile Picture Dropdown
+        document.getElementById('profile-section').addEventListener('click', function () {
+            let dropdown = document.getElementById('dropdown-menu');
+            dropdown.classList.toggle('show');
+        });
 
+        // Hide dropdown if clicked outside
+        window.addEventListener('click', function (event) {
+            if (!event.target.closest('#profile-section')) {
+                let dropdown = document.getElementById('dropdown-menu');
+                if (dropdown.classList.contains('show')) {
+                    dropdown.classList.remove('show');
+                }
+            }
+        });
+
+        // Image Slider Functionality
+        let slideIndex = 0;
         function showSlides() {
             let slides = document.getElementsByClassName("slide");
             for (let i = 0; i < slides.length; i++) {
                 slides[i].style.display = "none";
             }
             slideIndex++;
-            if (slideIndex > slides.length) { slideIndex = 1 }
+            if (slideIndex > slides.length) { slideIndex = 1; }
             slides[slideIndex - 1].style.display = "block";
-            setTimeout(showSlides, 3000); // Change slide every 3 seconds
+            setTimeout(showSlides, 3000);
         }
-         // Flash message fade out effect after 3 seconds
-         setTimeout(function () {
-            const flashMessages = document.querySelectorAll('.flash-message');
-            flashMessages.forEach(function (message) {
-                message.classList.add('hide');
-            });
+        showSlides();
+
+        // Flash messages auto-hide
+        setTimeout(() => {
+            document.querySelectorAll('.flash-message').forEach(msg => msg.classList.add('hide'));
         }, 3000);
     </script>
+
 </body>
 
 </html>
