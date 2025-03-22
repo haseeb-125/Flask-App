@@ -5,10 +5,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Climate Dashboard</title>
+    <!-- Include Plotly for dynamic chart rendering -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Include Chart.js for static charts (if needed) -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
 </head>
 
@@ -57,7 +64,7 @@
     {% endwith %}
 
     <div class="container mt-4">
-        <h2 class="text-center">🌍 Climate Dashboard</h2>
+        <h1 class="text-center">🌍 Climate Dashboard</h1>
 
         <!-- Weather Summary -->
         <div class="row mt-4">
@@ -90,9 +97,8 @@
         <!-- Search Bar for Country Selection -->
         <div class="row mt-4">
             <div class="col-md-6 offset-md-3">
-                <form action="{{ url_for('country', country_name='default') }}" method="GET" class="d-flex">
-                    <input type="text" name="country_name" class="form-control me-2" placeholder="Enter a country name"
-                        required>
+                <form id="searchForm" class="d-flex">
+                    <input type="text" id="countryInput" class="form-control me-2" placeholder="Enter a country name" required>
                     <button type="submit" class="btn btn-primary">Search</button>
                 </form>
             </div>
@@ -101,20 +107,21 @@
         <!-- Link to View Data for Afghanistan -->
         <div class="row mt-4">
             <div class="col-md-6 offset-md-3 text-center">
-                <a href="{{ url_for('country', country_name='Afghanistan') }}" class="btn btn-secondary">View
-                    Afghanistan Data</a>
+                <a href="{{ url_for('country', country_name='Afghanistan') }}" class="btn btn-secondary">View Afghanistan Data</a>
             </div>
         </div>
 
-        <!-- Forecast Chart -->
+        <!-- Chart Container for Dynamic Data -->
         <div class="mt-5">
-            <h4>📊 5-Day Temperature Forecast</h4>
+            <h2>📊 Temperature Change Over Time</h2>
             <div id="loading-spinner" class="text-center mt-5">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
-            <canvas id="forecastChart"></canvas>
+            <div id="chart-container">
+                <!-- Chart will be rendered here dynamically -->
+            </div>
         </div>
     </div>
 
@@ -127,15 +134,14 @@
             <p class="mb-2">&copy; 2025 Your Website. All Rights Reserved.</p>
             <ul class="list-inline">
                 <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Privacy Policy</a></li>
-                <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Terms of Service</a>
-                </li>
+                <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Terms of Service</a></li>
                 <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Contact Us</a></li>
             </ul>
             <div class="mt-3">
-                <a href="#" class="text-white me-3"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="text-white"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="text-white me-3" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="text-white me-3" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-white me-3" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="text-white" rel="noopener noreferrer"><i class="fab fa-linkedin"></i></a>
             </div>
         </div>
     </footer>
@@ -177,74 +183,93 @@
             window.scrollTo({ top: 0, behavior: 'smooth' });
         });
 
-        // Forecast Chart
-        window.onload = function () {
-            document.getElementById('loading-spinner').style.display = 'none';
+        // Function to fetch and display country data
+        function fetchAndDisplayCountryData(countryName) {
+            // Encode the country name for safe URL usage
+            const encodedCountryName = encodeURIComponent(countryName);
 
-            const ctx = document.getElementById("forecastChart");
-            if (!ctx) {
-                console.error("Canvas element not found!");
+            // Show loading spinner
+            document.getElementById('loading-spinner').style.display = 'block';
+
+            // Fetch the country data from the server
+            fetch(`/country/${encodedCountryName}`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP error! Status: ${response.status}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.error) {
+                        // Show pop-up if the country doesn't exist
+                        alert(data.error);
+                    } else {
+                        // Update the URL without reloading the page
+                        history.pushState({ country: countryName }, '', `/country/${encodedCountryName}`);
+
+                        // Render the chart with the fetched data
+                        renderChart(data.chart_data);
+                    }
+                })
+                .catch(error => {
+                    console.error("Error fetching country data:", error);
+                    alert("An error occurred while fetching data. Please try again.");
+                })
+                .finally(() => {
+                    // Hide loading spinner
+                    document.getElementById('loading-spinner').style.display = 'none';
+                });
+        }
+
+        // Function to render the chart using Plotly
+        function renderChart(chartData) {
+            const chartContainer = document.getElementById('chart-container');
+
+            // Clear previous chart
+            chartContainer.innerHTML = '';
+
+            // Create the chart
+            const trace = {
+                x: chartData.x,
+                y: chartData.y,
+                mode: 'lines+markers',
+                type: 'scatter',
+                marker: { color: chartData.color },
+                name: 'Temperature Change'
+            };
+
+            const layout = {
+                title: chartData.title,
+                xaxis: { title: chartData.labels.x },
+                yaxis: { title: chartData.labels.y }
+            };
+
+            Plotly.newPlot(chartContainer, [trace], layout);
+        }
+
+        // Handle form submission
+        document.getElementById('searchForm').addEventListener('submit', function (event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get the country name from the input
+            const countryName = document.getElementById('countryInput').value.trim();
+
+            if (!countryName) {
+                alert("Please enter a country name!"); // Show alert if input is empty
                 return;
             }
 
-            const forecastLabels = {{ data.forecast | map(attribute = 'day') | list | tojson | safe
-        }};
-        const forecastTemps = {{ data.forecast | map(attribute = 'temp') | list | tojson | safe }};
+            // Fetch and display data for the searched country
+            fetchAndDisplayCountryData(countryName);
+        });
 
-        new Chart(ctx.getContext("2d"), {
-            type: 'line',
-            data: {
-                labels: forecastLabels,
-                datasets: [{
-                    label: 'Temperature (°C)',
-                    data: forecastTemps,
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 2,
-                    pointRadius: 5,
-                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-                    pointHoverRadius: 7,
-                    fill: true
-                }]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    tooltip: {
-                        enabled: true,
-                        mode: 'index',
-                        intersect: false
-                    },
-                    legend: {
-                        display: true,
-                        position: 'top'
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: false,
-                        title: {
-                            display: true,
-                            text: 'Temperature (°C)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Day'
-                        }
-                    }
-                }
+        // Handle back/forward navigation
+        window.addEventListener('popstate', function (event) {
+            if (event.state && event.state.country) {
+                // Fetch and display data for the country in the URL
+                fetchAndDisplayCountryData(event.state.country);
             }
         });
-        };
-        function updateFormAction(event) {
-            event.preventDefault();
-            let country = document.getElementById('countryInput').value;
-            if (country) {
-                window.location.href = `/country/${country}`;
-            }
-        }
     </script>
 </body>
 

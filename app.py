@@ -1,12 +1,14 @@
-from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import pandas as pd
 import plotly.express as px
 import plotly.io as pio
+from flask_cors import CORS
 
-app = Flask(__name__)
+app = Flask(__name__)  # Define the Flask app first
+CORS(app)  # Then initialize CORS
 app.secret_key = "your_secret_key"  # Required for flash messages
 
 # MongoDB Configuration
@@ -29,11 +31,10 @@ def ClimateData():
         ]
     }
 
-
 # Load and clean the climate data
 def load_and_clean_data():
     # Load the CSV file
-    df = pd.read_csv("Environment_Temperature_change_E_All_Data_NOFLAG.csv", encoding='latin1')
+    df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
 
     # Drop rows with missing temperature change data
     df = df.dropna(subset=[col for col in df.columns if col.startswith('Y')])
@@ -49,12 +50,12 @@ def load_and_clean_data():
     df_melted = df_melted.dropna(subset=['Year'])  # Drop remaining NaN rows in 'Year'
     df_melted['Year'] = df_melted['Year'].astype(int)  # Ensure 'Year' is integer
 
-    return df_melted  # Ensure this line is aligned correctly
+    return df_melted
 
 @app.route('/plot')
 def plot():
     # Load or process data
-    df_melted = your_function_to_load_data()
+    df_melted = load_and_clean_data()  # Fix: Use the correct function
 
     # Get countries from the URL query parameter
     countries = request.args.get('countries')  # Example: "USA,India,Canada"
@@ -233,39 +234,46 @@ def climate_data():
     # Render the template with the graph and a link to the country route
     return render_template('climate_data.html', graph_html=graph_html, country_name='Afghanistan')
 
-@app.route('/country/', defaults={'country_name': 'default'})
+# Country Route
 @app.route('/country/<country_name>')
 def country(country_name):
-    # Check if user is logged in
-    if 'username' not in session:
-        flash("You need to log in to access this page!", 'warning')
-        return redirect(url_for('login'))
+    try:
+        # Check if user is logged in
+        if 'username' not in session:
+            return jsonify({"error": "You need to log in to access this page!"}), 401
 
-    # Load and clean the data
-    df = load_and_clean_data()
+        # Load and clean the data
+        df = load_and_clean_data()
 
-    # Filter data for the selected country (case-insensitive)
-    country_data = df[df['Area'].str.lower() == country_name.lower()]
+        # Filter data for the selected country (case-insensitive)
+        country_data = df[df['Area'].str.lower() == country_name.lower()]
 
-    if country_data.empty:
-        flash(f"No data available for {country_name}. Please select a valid country.", 'danger')
-        return redirect(url_for('home'))  # Redirect to home if no data found
+        if country_data.empty:
+            # Return a JSON response if the country doesn't exist
+            return jsonify({"error": f"No data available for {country_name}. Please select a valid country."}), 404
 
-    # Create a line chart for temperature change over time
-    fig = px.line(
-        country_data, 
-        x='Year', 
-        y='Temperature Change', 
-        color='Month',  # Ensure 'Month' exists in dataset
-        title=f'Temperature Change in {country_name} Over Time',
-        labels={'Temperature Change': 'Temperature Change (°C)', 'Year': 'Year'}
-    )
+        # Prepare data for the chart
+        chart_data = {
+            "x": country_data['Year'].tolist(),  # X-axis data (years)
+            "y": country_data['Temperature Change'].tolist(),  # Y-axis data (temperature change)
+            "color": country_data['Months'].tolist(),  # Color data (months)
+            "title": f"Temperature Change in {country_name} Over Time",
+            "labels": {
+                "x": "Year",
+                "y": "Temperature Change (°C)"
+            }
+        }
 
-    # Convert the plot to HTML
-    graph_html = fig.to_html(full_html=False)  # Use fig.to_html()
-
-    # Render the template with the graph
-    return render_template('climate_data.html', graph_html=graph_html, country_name=country_name)
+        # Return JSON response with the chart data
+        return jsonify({
+            "country_name": country_name,
+            "chart_data": chart_data
+        })
+    except Exception as e:
+        # Log the error and return a JSON response
+        print(f"Error in /country/<country_name> route: {e}")
+        return jsonify({"error": "An error occurred while processing your request. Please try again."}), 500
+        
 
 if __name__ == '__main__':
     app.run(debug=True)
