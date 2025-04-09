@@ -1,56 +1,137 @@
 from flask import Flask, render_template, request, redirect, url_for, session, flash, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
-import random
+import requests
+from flask import request, jsonify
 import pandas as pd
 import plotly.express as px
-import plotly.io as pio
 from flask_cors import CORS
 
-app = Flask(__name__)  # Define the Flask app first
-CORS(app)  # Then initialize CORS
-app.secret_key = "your_secret_key"  # Required for flash messages
+app = Flask(__name__)
+CORS(app)
+app.secret_key = "your_secret_key"
 
 # MongoDB Configuration
 app.config["MONGO_URI"] = "mongodb://localhost:27017/Climate_DB"
 mongo = PyMongo(app)
 
-# Function to generate random climate data
-def ClimateData():
-    return {
-        "temperature": round(random.uniform(15, 35)),  # Random temperature between 15°C and 35°C
-        "humidity": random.randint(30, 80),  # Random humidity between 30% and 80%
-        "wind_speed": round(random.uniform(1, 15)),  # Random wind speed between 1 km/h and 15 km/h
-        "air_quality": random.choice(["Good", "Moderate", "Poor", "Unhealthy"]),  # Random air quality
-        "forecast": [
-            {"day": "Monday", "temp": random.randint(18, 30)},
-            {"day": "Tuesday", "temp": random.randint(18, 30)},
-            {"day": "Wednesday", "temp": random.randint(18, 30)},
-            {"day": "Thursday", "temp": random.randint(18, 30)},
-            {"day": "Friday", "temp": random.randint(18, 30)},
-        ]
-    }
+# API Configuration
+API_KEY = "6746ffcb6b9c2c75f6b942d0180088e3"
+API_BASE_URL = "https://api.openweathermap.org/data/2.5/weather"
+
+def get_live_weather_data(city):
+    try:
+        params = {
+            'q': city,
+            'appid': API_KEY,
+            'units': 'metric'
+        }
+        response = requests.get(API_BASE_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
+        
+        return {
+            "temperature": data['main']['temp'],
+            "humidity": data['main']['humidity'],
+            "wind_speed": data['wind']['speed'],
+            "air_quality": "Good"  # Placeholder - real air quality would need another API
+        }
+    except Exception as e:
+        print(f"Error fetching weather data: {e}")
+        return None
 
 # Load and clean the climate data
 def load_and_clean_data():
-    # Load the CSV file
     df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
-
-    # Drop rows with missing temperature change data
     df = df.dropna(subset=[col for col in df.columns if col.startswith('Y')])
-
-    # Melt the dataframe to have a long format for easier plotting
     df_melted = df.melt(id_vars=['Area', 'Months', 'Element', 'Unit'], 
-                        var_name='Year', 
-                        value_name='Temperature Change')
-
-    # Extract the year from the 'Year' column, handle NaN values, and convert to integer
-    df_melted['Year'] = df_melted['Year'].str.extract(r'(\d+)')  # Extract only digits
-    df_melted['Year'] = df_melted['Year'].fillna(0).astype(int)  # Fill NaN and convert to int
-    df_melted = df_melted.dropna(subset=['Year'])  # Drop remaining NaN rows in 'Year'
-    df_melted['Year'] = df_melted['Year'].astype(int)  # Ensure 'Year' is integer
-
+                       var_name='Year', 
+                       value_name='Temperature Change')
+    df_melted['Year'] = df_melted['Year'].str.extract(r'(\d+)')
+    df_melted['Year'] = df_melted['Year'].fillna(0).astype(int)
     return df_melted
+
+# Add this with your other route definitions
+@app.route('/get_weather')
+def get_weather():
+    city = request.args.get('city')
+    if not city:
+        return jsonify({"error": "City name is required"}), 400
+    
+    try:
+        # Using your API key
+        api_key = "6746ffcb6b9c2c75f6b942d0180088e3"
+        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
+        
+        response = requests.get(url)
+        response.raise_for_status()  # Raises exception for 4XX/5XX errors
+        data = response.json()
+        
+        return jsonify({
+            "temperature": data['main']['temp'],
+            "humidity": data['main']['humidity'],
+            "wind_speed": data['wind']['speed'],
+            "air_quality": "N/A",  # OpenWeatherMap doesn't provide this in free tier
+            "city": data['name'],
+            "country": data['sys']['country']
+        })
+        
+    except requests.exceptions.RequestException as e:
+        return jsonify({"error": f"Weather API error: {str(e)}"}), 500
+    except KeyError as e:
+        return jsonify({"error": f"Unexpected API response format: {str(e)}"}), 500
+
+@app.route('/api/countries')
+def get_countries():
+    try:
+        df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
+        countries = df['Area'].unique().tolist()
+        return jsonify(sorted([c for c in countries if pd.notna(c)]))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/cities/<country>')
+def get_cities(country):
+    try:
+        df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
+        cities = df[df['Area'] == country]['Months'].unique().tolist()
+        return jsonify(sorted([c for c in cities if pd.notna(c)]))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/climate-data/<country>/<month>')
+def get_climate_data(country, month):
+    try:
+        df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
+        
+        # Filter data for the selected country and month
+        filtered = df[(df['Area'] == country) & (df['Months'] == month)]
+        
+        # Melt the dataframe to get year-value pairs
+        melted = filtered.melt(id_vars=['Area', 'Months'], 
+                             var_name='Year', 
+                             value_name='Temperature')
+        
+        # Clean year values (remove 'Y' prefix)
+        melted['Year'] = melted['Year'].str.replace('Y', '').astype(int)
+        
+        # Sort by year
+        melted = melted.sort_values('Year')
+        
+        # Prepare chart data
+        chart_data = {
+            "title": f"Temperature in {country} ({month})",
+            "data": {
+                "x": melted['Year'].tolist(),
+                "y": melted['Temperature'].tolist(),
+                "color": "#4bc0c0"
+            }
+        }
+        
+        return jsonify(chart_data)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route('/plot')
 def plot():
@@ -69,25 +150,37 @@ def plot():
 
     return fig.to_html()
 
-# Home Page Route
 @app.route('/')
 def home():
-    # Check if user is logged in
     if 'username' not in session:
         return redirect(url_for('login'))
     
-    # Retrieve the username from the session for greeting
-    username = session['username']
+    # Get live weather data
+    default_city = "Pakistan"
+    weather_data = get_live_weather_data(default_city)
     
-    # Load climate data
-    climate_data = ClimateData()
+    if not weather_data:
+        flash("Could not fetch live weather data", "danger")
+        weather_data = {
+            "temperature": "N/A",
+            "humidity": "N/A",
+            "wind_speed": "N/A",
+            "air_quality": "N/A",
+            "forecast": []  # Empty forecast array to prevent template errors
+        }
+    else:
+        # Add mock forecast data structure if needed by template
+        weather_data["forecast"] = []
     
-    # Extract forecast labels and temperatures
-    forecast_labels = [item['day'] for item in climate_data['forecast']]
-    forecast_temps = [item['temp'] for item in climate_data['forecast']]
+    # Generate forecast labels/temps if template expects them
+    forecast_labels = []
+    forecast_temps = []
     
-    return render_template('home.html', username=username, data=climate_data, forecast_labels=forecast_labels, forecast_temps=forecast_temps)
-
+    return render_template('home.html', 
+                         username=session['username'], 
+                         data=weather_data,
+                         forecast_labels=forecast_labels,
+                         forecast_temps=forecast_temps)
 # Sign Up Route
 @app.route("/signup", methods=["GET", "POST"])
 def signup():
@@ -273,6 +366,7 @@ def country(country_name):
         # Log the error and return a JSON response
         print(f"Error in /country/<country_name> route: {e}")
         return jsonify({"error": "An error occurred while processing your request. Please try again."}), 500
+      
         
 
 if __name__ == '__main__':

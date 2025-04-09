@@ -5,10 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Climate Dashboard</title>
-    <!-- Include Plotly for dynamic chart rendering -->
-    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
-    <!-- Include Chart.js for static charts (if needed) -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Updated Plotly.js to latest stable version -->
+    <script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
     <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <!-- Font Awesome for icons -->
@@ -17,6 +15,52 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     <!-- Favicon -->
     <link rel="icon" href="{{ url_for('static', filename='images/favicon.ico') }}" type="image/x-icon">
+    <style>
+        #loading-spinner {
+            display: none;
+        }
+        .live-data-badge {
+            font-size: 0.7rem;
+            background-color: #0d6efd;
+        }
+        .historical-data-badge {
+            font-size: 0.7rem;
+            background-color: #6c757d;
+        }
+        .data-card {
+            transition: transform 0.3s ease;
+        }
+        .data-card:hover {
+            transform: translateY(-5px);
+        }
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+        .dropdown-menu.show {
+            display: block;
+        }
+        .profile-container {
+            position: relative;
+            display: inline-block;
+            cursor: pointer;
+        }
+        .flash-message.hide {
+            opacity: 0;
+            transition: opacity 0.5s ease-out;
+        }
+        #back-to-top {
+            display: none;
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 99;
+        }
+    </style>
 </head>
 
 <body class="bg-light">
@@ -66,61 +110,112 @@
     <div class="container mt-4">
         <h1 class="text-center">🌍 Climate Dashboard</h1>
 
-        <!-- Weather Summary -->
-        <div class="row mt-4">
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h5>🌡️ Temperature</h5>
-                    <p class="fs-4">{{ data.temperature }}°C</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h5>💧 Humidity</h5>
-                    <p class="fs-4">{{ data.humidity }}%</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h5>🌬️ Wind Speed</h5>
-                    <p class="fs-4">{{ data.wind_speed }} km/h</p>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="card text-center p-3">
-                    <h5>🌫️ Air Quality</h5>
-                    <p class="fs-4">{{ data.air_quality }}</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Search Bar for Country Selection -->
+        <!-- City Weather Search -->
         <div class="row mt-4">
             <div class="col-md-6 offset-md-3">
-                <form id="searchForm" class="d-flex">
-                    <input type="text" id="countryInput" class="form-control me-2" placeholder="Enter a country name" required>
-                    <button type="submit" class="btn btn-primary">Search</button>
+                <form id="cityWeatherForm" class="d-flex">
+                    <input type="text" id="cityInput" class="form-control me-2" 
+                           placeholder="Enter a city for current weather" required>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-search me-1"></i> Get Weather
+                    </button>
                 </form>
             </div>
         </div>
 
-        <!-- Link to View Data for Afghanistan -->
-        <div class="row mt-4">
-            <div class="col-md-6 offset-md-3 text-center">
-                <a href="{{ url_for('country', country_name='Afghanistan') }}" class="btn btn-secondary">View Afghanistan Data</a>
+        <!-- Current Weather Data -->
+        <div class="row mt-4" id="currentWeatherContainer">
+            <div class="col-md-3">
+                <div class="card text-center p-3 data-card">
+                    <h5>🌡️ Temperature <span class="badge live-data-badge">Live</span></h5>
+                    <p class="fs-4" id="currentTemp">--°C</p>
+                    <small class="text-muted" id="currentLocation">Search for a city</small>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3 data-card">
+                    <h5>💧 Humidity <span class="badge live-data-badge">Live</span></h5>
+                    <p class="fs-4" id="currentHumidity">--%</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3 data-card">
+                    <h5>🌬️ Wind Speed <span class="badge live-data-badge">Live</span></h5>
+                    <p class="fs-4" id="currentWind">-- km/h</p>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center p-3 data-card">
+                    <h5>🌫️ Air Quality <span class="badge live-data-badge">Live</span></h5>
+                    <p class="fs-4" id="currentAirQuality">--</p>
+                </div>
             </div>
         </div>
 
-        <!-- Chart Container for Dynamic Data -->
-        <div class="mt-5">
-            <h2>📊 Temperature Change Over Time</h2>
-            <div id="loading-spinner" class="text-center mt-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
+        <!-- Climate Data Visualization Section -->
+        <div class="row mt-5">
+            <!-- Sidebar with country/month selection -->
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">🌎 Select Location</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="countrySelect" class="form-label">Country</label>
+                            <select class="form-select" id="countrySelect">
+                                <option value="" selected disabled>Loading countries...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="monthSelect" class="form-label">Month</label>
+                            <select class="form-select" id="monthSelect" disabled>
+                                <option value="" selected disabled>Select Month</option>
+                            </select>
+                        </div>
+                        <button id="analyzeBtn" class="btn btn-primary w-100" disabled>
+                            <i class="fas fa-chart-line me-1"></i> Analyze
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Quick Analysis Section -->
+                <div class="card mt-3">
+                    <div class="card-header bg-secondary text-white">
+                        <h5 class="mb-0">📊 Quick Analysis</h5>
+                    </div>
+                    <div class="card-body">
+                        <button id="globalTrendsBtn" class="btn btn-outline-primary w-100 mb-2">
+                            Global Temperature Trends
+                        </button>
+                        <button id="precipitationBtn" class="btn btn-outline-primary w-100 mb-2">
+                            Precipitation Data
+                        </button>
+                    </div>
                 </div>
             </div>
-            <div id="chart-container">
-                <!-- Chart will be rendered here dynamically -->
+            
+            <!-- Main chart area -->
+            <div class="col-md-9">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0" id="chartTitle">📊 Climate Data Visualization</h5>
+                    </div>
+                    <div class="card-body">
+                        <div id="loading-spinner" class="text-center mt-5">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                        <div id="chart-container" style="min-height: 500px;">
+                            <div id="default-message" class="text-center py-5">
+                                <i class="fas fa-globe-americas fa-5x text-muted mb-3"></i>
+                                <h3>Welcome to Climate Dashboard</h3>
+                                <p class="text-muted">Select a country and month to view climate data</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -131,146 +226,349 @@
     <!-- Footer -->
     <footer class="bg-dark text-white py-4 mt-5">
         <div class="container text-center">
-            <p class="mb-2">&copy; 2025 Your Website. All Rights Reserved.</p>
-            <ul class="list-inline">
-                <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Privacy Policy</a></li>
-                <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Terms of Service</a></li>
-                <li class="list-inline-item"><a href="#" class="text-white text-decoration-none">Contact Us</a></li>
-            </ul>
+            <p class="mb-2">&copy; 2025 Climate Dashboard. All Rights Reserved.</p>
             <div class="mt-3">
-                <a href="#" class="text-white me-3" rel="noopener noreferrer"><i class="fab fa-facebook"></i></a>
-                <a href="#" class="text-white me-3" rel="noopener noreferrer"><i class="fab fa-twitter"></i></a>
-                <a href="#" class="text-white me-3" rel="noopener noreferrer"><i class="fab fa-instagram"></i></a>
-                <a href="#" class="text-white" rel="noopener noreferrer"><i class="fab fa-linkedin"></i></a>
+                <a href="#" class="text-white me-3"><i class="fab fa-facebook"></i></a>
+                <a href="#" class="text-white me-3"><i class="fab fa-twitter"></i></a>
+                <a href="#" class="text-white me-3"><i class="fab fa-instagram"></i></a>
+                <a href="#" class="text-white"><i class="fab fa-linkedin"></i></a>
             </div>
         </div>
     </footer>
 
     <!-- JavaScript -->
     <script>
-        // Profile Picture Dropdown
-        document.getElementById('profile-section').addEventListener('click', function () {
-            let dropdown = document.getElementById('dropdown-menu');
-            dropdown.classList.toggle('show');
-        });
+        // DOM Elements
+        const elements = {
+            profileSection: document.getElementById('profile-section'),
+            dropdownMenu: document.getElementById('dropdown-menu'),
+            flashMessages: document.querySelectorAll('.flash-message'),
+            backToTopButton: document.getElementById('back-to-top'),
+            weatherElements: {
+                temp: document.getElementById('currentTemp'),
+                humidity: document.getElementById('currentHumidity'),
+                wind: document.getElementById('currentWind'),
+                airQuality: document.getElementById('currentAirQuality'),
+                location: document.getElementById('currentLocation')
+            },
+            loadingSpinner: document.getElementById('loading-spinner'),
+            chartContainer: document.getElementById('chart-container'),
+            defaultMessage: document.getElementById('default-message'),
+            cityWeatherForm: document.getElementById('cityWeatherForm'),
+            cityInput: document.getElementById('cityInput'),
+            countrySelect: document.getElementById('countrySelect'),
+            monthSelect: document.getElementById('monthSelect'),
+            analyzeBtn: document.getElementById('analyzeBtn'),
+            globalTrendsBtn: document.getElementById('globalTrendsBtn'),
+            precipitationBtn: document.getElementById('precipitationBtn'),
+            chartTitle: document.getElementById('chartTitle')
+        };
 
-        // Hide dropdown if clicked outside
-        window.addEventListener('click', function (event) {
-            if (!event.target.closest('#profile-section')) {
-                let dropdown = document.getElementById('dropdown-menu');
-                if (dropdown.classList.contains('show')) {
-                    dropdown.classList.remove('show');
+        // Constants
+        const API_ENDPOINTS = {
+            weather: '/get_weather',
+            countries: '/api/countries',
+            months: (country) => `/api/cities/${encodeURIComponent(country)}`,
+            climateData: (country, month) => `/api/climate-data/${encodeURIComponent(country)}/${encodeURIComponent(month)}`,
+            globalTrends: '/api/global-trends',
+            precipitation: '/api/precipitation'
+        };
+
+        const DEFAULT_VALUES = {
+            city: 'London',
+            country: 'Pakistan'
+        };
+
+        // Utility Functions
+        const showLoading = (show = true) => {
+            elements.loadingSpinner.style.display = show ? 'block' : 'none';
+            if (show) elements.defaultMessage.style.display = 'none';
+        };
+
+        const showError = (message) => {
+            elements.chartContainer.innerHTML = `
+                <div class="alert alert-danger">
+                    ${message}
+                </div>
+            `;
+        };
+
+        const resetWeatherDisplay = () => {
+            Object.values(elements.weatherElements).forEach(el => {
+                el.textContent = '--';
+                if (el.classList.contains('text-danger')) {
+                    el.classList.remove('text-danger');
+                    el.classList.add('text-muted');
                 }
+            });
+        };
+
+        // Data Fetching Functions
+        const fetchData = async (url, errorContext) => {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) {
+                    const errorData = await response.json().catch(() => ({}));
+                    throw new Error(errorData.error || `Failed to fetch ${errorContext}`);
+                }
+                return await response.json();
+            } catch (error) {
+                console.error(`Error fetching ${errorContext}:`, error);
+                throw error;
             }
-        });
+        };
 
-        // Flash messages auto-hide
-        setTimeout(() => {
-            document.querySelectorAll('.flash-message').forEach(msg => msg.classList.add('hide'));
-        }, 3000);
-
-        // Back-to-top button
-        const backToTopButton = document.getElementById('back-to-top');
-        window.addEventListener('scroll', () => {
-            if (window.scrollY > 300) {
-                backToTopButton.style.display = 'block';
-            } else {
-                backToTopButton.style.display = 'none';
+        // Weather Functions
+        const fetchAndDisplayWeather = async (city) => {
+            if (!city) {
+                alert('Please enter a city name');
+                return;
             }
-        });
 
-        backToTopButton.addEventListener('click', () => {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
+            // Show loading state
+            Object.values(elements.weatherElements).forEach(el => {
+                el.textContent = 'Loading...';
+            });
 
-        // Function to fetch and display country data
-        function fetchAndDisplayCountryData(countryName) {
-            // Encode the country name for safe URL usage
-            const encodedCountryName = encodeURIComponent(countryName);
+            try {
+                const data = await fetchData(
+                    `${API_ENDPOINTS.weather}?city=${encodeURIComponent(city)}`,
+                    'weather data'
+                );
 
-            // Show loading spinner
-            document.getElementById('loading-spinner').style.display = 'block';
+                // Update UI with weather data
+                elements.weatherElements.temp.textContent = `${Math.round(data.temperature)}°C`;
+                elements.weatherElements.humidity.textContent = `${data.humidity}%`;
+                elements.weatherElements.wind.textContent = `${Math.round(data.wind_speed * 3.6)} km/h`;
+                elements.weatherElements.airQuality.textContent = data.air_quality;
+                elements.weatherElements.location.textContent = `${data.city}, ${data.country}`;
+            } catch (error) {
+                resetWeatherDisplay();
+                alert(`Error: ${error.message}`);
+            }
+        };
 
-            // Fetch the country data from the server
-            fetch(`/country/${encodedCountryName}`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP error! Status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.error) {
-                        // Show pop-up if the country doesn't exist
-                        alert(data.error);
-                    } else {
-                        // Update the URL without reloading the page
-                        history.pushState({ country: countryName }, '', `/country/${encodedCountryName}`);
+        // Chart Functions
+        const renderClimateChart = (chartData) => {
+            elements.chartContainer.innerHTML = '';
 
-                        // Render the chart with the fetched data
-                        renderChart(data.chart_data);
-                    }
-                })
-                .catch(error => {
-                    console.error("Error fetching country data:", error);
-                    alert("An error occurred while fetching data. Please try again.");
-                })
-                .finally(() => {
-                    // Hide loading spinner
-                    document.getElementById('loading-spinner').style.display = 'none';
-                });
-        }
-
-        // Function to render the chart using Plotly
-        function renderChart(chartData) {
-            const chartContainer = document.getElementById('chart-container');
-
-            // Clear previous chart
-            chartContainer.innerHTML = '';
-
-            // Create the chart
-            const trace = {
+            const traces = [{
                 x: chartData.x,
                 y: chartData.y,
                 mode: 'lines+markers',
                 type: 'scatter',
-                marker: { color: chartData.color },
-                name: 'Temperature Change'
-            };
+                marker: {
+                    color: chartData.color || '#4bc0c0',
+                    size: 8,
+                    line: { width: 1, color: '#333' }
+                },
+                line: { width: 2 },
+                name: chartData.name || 'Climate Data'
+            }];
 
             const layout = {
-                title: chartData.title,
-                xaxis: { title: chartData.labels.x },
-                yaxis: { title: chartData.labels.y }
+                title: {
+                    text: chartData.title || 'Climate Data',
+                    font: { size: 18 }
+                },
+                xaxis: {
+                    title: chartData.labels?.x || 'Year',
+                    gridcolor: '#f0f0f0'
+                },
+                yaxis: {
+                    title: chartData.labels?.y || 'Value',
+                    gridcolor: '#f0f0f0'
+                },
+                plot_bgcolor: 'rgba(0,0,0,0)',
+                paper_bgcolor: 'rgba(0,0,0,0)',
+                hovermode: 'closest',
+                margin: { l: 50, r: 50, b: 50, t: 80, pad: 4 }
             };
 
-            Plotly.newPlot(chartContainer, [trace], layout);
-        }
+            Plotly.newPlot(elements.chartContainer, traces, layout, {
+                responsive: true,
+                displayModeBar: true,
+                displaylogo: false
+            });
+        };
 
-        // Handle form submission
-        document.getElementById('searchForm').addEventListener('submit', function (event) {
-            event.preventDefault(); // Prevent form submission
-
-            // Get the country name from the input
-            const countryName = document.getElementById('countryInput').value.trim();
-
-            if (!countryName) {
-                alert("Please enter a country name!"); // Show alert if input is empty
+        const fetchAndDisplayClimateData = async (country, month) => {
+            if (!country || !month) {
+                alert('Please select both country and month');
                 return;
             }
 
-            // Fetch and display data for the searched country
-            fetchAndDisplayCountryData(countryName);
-        });
+            showLoading();
+            elements.chartTitle.textContent = `Climate Data for ${country} (${month})`;
 
-        // Handle back/forward navigation
-        window.addEventListener('popstate', function (event) {
-            if (event.state && event.state.country) {
-                // Fetch and display data for the country in the URL
-                fetchAndDisplayCountryData(event.state.country);
+            try {
+                const data = await fetchData(
+                    API_ENDPOINTS.climateData(country, month),
+                    'climate data'
+                );
+                renderClimateChart(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoading(false);
             }
-        });
+        };
+
+        const fetchAndDisplayGlobalTrends = async () => {
+            showLoading();
+            elements.chartTitle.textContent = 'Global Temperature Trends';
+
+            try {
+                const data = await fetchData(API_ENDPOINTS.globalTrends, 'global trends');
+                renderClimateChart(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        const fetchAndDisplayPrecipitation = async () => {
+            showLoading();
+            elements.chartTitle.textContent = 'Global Precipitation Data';
+
+            try {
+                const data = await fetchData(API_ENDPOINTS.precipitation, 'precipitation data');
+                renderClimateChart(data);
+            } catch (error) {
+                showError(error.message);
+            } finally {
+                showLoading(false);
+            }
+        };
+
+        // Dropdown Population Functions
+        const populateCountries = async () => {
+            try {
+                const countries = await fetchData(API_ENDPOINTS.countries, 'countries');
+                
+                elements.countrySelect.innerHTML = '';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select Country';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                elements.countrySelect.appendChild(defaultOption);
+                
+                countries.forEach(country => {
+                    const option = document.createElement('option');
+                    option.value = country;
+                    option.textContent = country;
+                    elements.countrySelect.appendChild(option);
+                });
+                
+                // Set default country if available
+                if (countries.includes(DEFAULT_VALUES.country)) {
+                    elements.countrySelect.value = DEFAULT_VALUES.country;
+                    await populateMonths(DEFAULT_VALUES.country);
+                }
+            } catch (error) {
+                elements.countrySelect.innerHTML = '<option value="" selected disabled>Error loading countries</option>';
+            }
+        };
+
+        const populateMonths = async (country) => {
+            if (!country) {
+                elements.monthSelect.disabled = true;
+                elements.analyzeBtn.disabled = true;
+                return;
+            }
+
+            elements.monthSelect.disabled = true;
+            elements.monthSelect.innerHTML = '<option value="" selected disabled>Loading months...</option>';
+
+            try {
+                const months = await fetchData(API_ENDPOINTS.months(country), 'months');
+                
+                elements.monthSelect.innerHTML = '';
+                const defaultOption = document.createElement('option');
+                defaultOption.value = '';
+                defaultOption.textContent = 'Select Month';
+                defaultOption.disabled = true;
+                defaultOption.selected = true;
+                elements.monthSelect.appendChild(defaultOption);
+                
+                months.forEach(month => {
+                    const option = document.createElement('option');
+                    option.value = month;
+                    option.textContent = month;
+                    elements.monthSelect.appendChild(option);
+                });
+                
+                elements.monthSelect.disabled = false;
+                elements.analyzeBtn.disabled = true; // Still need to select month
+            } catch (error) {
+                elements.monthSelect.innerHTML = '<option value="" selected disabled>Error loading months</option>';
+            }
+        };
+
+        // Event Handlers
+        const setupEventListeners = () => {
+            // Profile dropdown
+            elements.profileSection.addEventListener('click', () => {
+                elements.dropdownMenu.classList.toggle('show');
+            });
+
+            window.addEventListener('click', (e) => {
+                if (!e.target.closest('#profile-section') && elements.dropdownMenu.classList.contains('show')) {
+                    elements.dropdownMenu.classList.remove('show');
+                }
+            });
+
+            // Flash messages
+            setTimeout(() => {
+                elements.flashMessages.forEach(msg => msg.classList.add('hide'));
+            }, 3000);
+
+            // Back to top button
+            window.addEventListener('scroll', () => {
+                elements.backToTopButton.style.display = window.scrollY > 300 ? 'block' : 'none';
+            });
+
+            elements.backToTopButton.addEventListener('click', () => {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            });
+
+            // Weather form
+            elements.cityWeatherForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                fetchAndDisplayWeather(elements.cityInput.value.trim());
+            });
+
+            // Country/month selection
+            elements.countrySelect.addEventListener('change', () => {
+                populateMonths(elements.countrySelect.value);
+            });
+
+            elements.monthSelect.addEventListener('change', () => {
+                elements.analyzeBtn.disabled = !elements.monthSelect.value;
+            });
+
+            elements.analyzeBtn.addEventListener('click', () => {
+                fetchAndDisplayClimateData(
+                    elements.countrySelect.value,
+                    elements.monthSelect.value
+                );
+            });
+
+            // Quick analysis buttons
+            elements.globalTrendsBtn.addEventListener('click', fetchAndDisplayGlobalTrends);
+            elements.precipitationBtn.addEventListener('click', fetchAndDisplayPrecipitation);
+        };
+
+        // Initialize the application
+        const init = async () => {
+            setupEventListeners();
+            await populateCountries();
+            fetchAndDisplayWeather(DEFAULT_VALUES.city);
+        };
+
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
-
-</html>
+</html> 
