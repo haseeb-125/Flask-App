@@ -6,6 +6,7 @@ from flask import request, jsonify
 import pandas as pd
 import plotly.express as px
 from flask_cors import CORS
+import  re 
 
 app = Flask(__name__)
 CORS(app)
@@ -135,35 +136,49 @@ def get_cities(country):
 @app.route('/api/climate-data/<country>/<month>')
 def get_climate_data(country, month):
     try:
+        # Load the CSV data
         df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
         
-        # Filter data for the selected country and month
-        filtered = df[(df['Area'] == country) & (df['Months'] == month)]
+        # Clean the month name by removing special characters and normalizing
+        month_cleaned = re.sub(r'[^\w\s-]', '', month).strip().lower()
         
-        # Melt the dataframe to get year-value pairs
-        melted = filtered.melt(id_vars=['Area', 'Months'], 
-                             var_name='Year', 
-                             value_name='Temperature')
+        # Get all valid year columns (format Y2000, Y2001, etc.)
+        year_cols = [col for col in df.columns if col.startswith('Y') and col[1:].isdigit()]
         
-        # Clean year values (remove 'Y' prefix)
-        melted['Year'] = melted['Year'].str.replace('Y', '').astype(int)
+        if not year_cols:
+            return jsonify({"error": "No valid year columns found in dataset"}), 500
+
+        # Filter for country and month (case insensitive, partial match)
+        filtered = df[
+            (df['Area'].str.lower() == country.lower()) & 
+            (df['Months'].str.lower().str.contains(month_cleaned))
+        ]
         
-        # Sort by year
-        melted = melted.sort_values('Year')
+        if filtered.empty:
+            return jsonify({
+                "error": f"No data found for {country} and {month}",
+                "suggestion": "Try simpler month names like 'Jun' instead of 'Jun-Jul-Aug'"
+            }), 404
         
-        # Prepare chart data
-        chart_data = {
+        # Prepare the response data
+        years = [int(col[1:]) for col in year_cols]
+        temperatures = filtered[year_cols].values[0].tolist()
+        
+        # Return data in the format expected by the frontend
+        return jsonify({
+            "x": years,
+            "y": temperatures,
             "title": f"Temperature in {country} ({month})",
-            "data": {
-                "x": melted['Year'].tolist(),
-                "y": melted['Temperature'].tolist(),
-                "color": "#4bc0c0"
-            }
-        }
+            "labels": {
+                "x": "Year",
+                "y": "Temperature (°C)"
+            },
+            "color": "#4bc0c0",
+            "name": "Temperature"
+        })
         
-        return jsonify(chart_data)
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({"error": f"Server error: {str(e)}"}), 500
 
 
 @app.route('/plot')

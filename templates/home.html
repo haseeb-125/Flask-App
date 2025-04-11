@@ -19,40 +19,49 @@
         #loading-spinner {
             display: none;
         }
+
         .live-data-badge {
             font-size: 0.7rem;
             background-color: #0d6efd;
         }
+
         .historical-data-badge {
             font-size: 0.7rem;
             background-color: #6c757d;
         }
+
         .data-card {
             transition: transform 0.3s ease;
         }
+
         .data-card:hover {
             transform: translateY(-5px);
         }
+
         .dropdown-menu {
             display: none;
             position: absolute;
             background-color: #f9f9f9;
             min-width: 160px;
-            box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+            box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
             z-index: 1;
         }
+
         .dropdown-menu.show {
             display: block;
         }
+
         .profile-container {
             position: relative;
             display: inline-block;
             cursor: pointer;
         }
+
         .flash-message.hide {
             opacity: 0;
             transition: opacity 0.5s ease-out;
         }
+
         #back-to-top {
             display: none;
             position: fixed;
@@ -114,8 +123,8 @@
         <div class="row mt-4">
             <div class="col-md-6 offset-md-3">
                 <form id="cityWeatherForm" class="d-flex">
-                    <input type="text" id="cityInput" class="form-control me-2" 
-                           placeholder="Enter a city for current weather" required>
+                    <input type="text" id="cityInput" class="form-control me-2"
+                        placeholder="Enter a city for current weather" required>
                     <button type="submit" class="btn btn-primary">
                         <i class="fas fa-search me-1"></i> Get Weather
                     </button>
@@ -178,7 +187,7 @@
                         </button>
                     </div>
                 </div>
-                
+
                 <!-- Quick Analysis Section -->
                 <div class="card mt-3">
                     <div class="card-header bg-secondary text-white">
@@ -194,7 +203,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Main chart area -->
             <div class="col-md-9">
                 <div class="card">
@@ -352,6 +361,12 @@
         const renderClimateChart = (chartData) => {
             elements.chartContainer.innerHTML = '';
 
+            // Validate data
+            if (!chartData || !chartData.x || !chartData.y ||
+                chartData.x.length === 0 || chartData.y.length === 0) {
+                throw new Error("No valid data to display");
+            }
+
             const traces = [{
                 x: chartData.x,
                 y: chartData.y,
@@ -391,7 +406,6 @@
                 displaylogo: false
             });
         };
-
         const fetchAndDisplayClimateData = async (country, month) => {
             if (!country || !month) {
                 alert('Please select both country and month');
@@ -402,17 +416,90 @@
             elements.chartTitle.textContent = `Climate Data for ${country} (${month})`;
 
             try {
-                const data = await fetchData(
-                    API_ENDPOINTS.climateData(country, month),
-                    'climate data'
-                );
+                const cleanMonth = month.replace(/[^\w\s-]/g, '').split('-')[0].trim();
+                const url = `/api/climate-data/${encodeURIComponent(country)}/${encodeURIComponent(cleanMonth)}`;
+
+                console.log("Fetching from:", url);
+
+                // First try standard fetch
+                const response = await fetch(url);
+
+                // Check if response looks like a stream
+                const responseText = await response.text();
+                if (responseText.includes('retry:') || responseText.startsWith('data:')) {
+                    // Handle as SSE stream
+                    console.log("Detected streaming response, switching to EventSource");
+                    return setupEventSource(url);
+                }
+
+                // Otherwise try to parse as JSON
+                const data = JSON.parse(responseText);
+                console.log("API Response:", data);
+
+                if (!response.ok) {
+                    throw new Error(data.error || data.message || 'Failed to fetch climate data');
+                }
+
+                // Validate data before rendering
+                if (!data.x || !data.y || data.x.length === 0 || data.y.length === 0) {
+                    throw new Error("Received empty data from server");
+                }
+
                 renderClimateChart(data);
             } catch (error) {
-                showError(error.message);
+                console.error("Climate data error:", error);
+                elements.chartContainer.innerHTML = `
+            <div class="alert alert-danger">
+                ${error.message}<br>
+                ${error.message.includes('empty data') ?
+                        'No data available for the selected parameters' :
+                        'Error loading climate data'}
+            </div>
+        `;
             } finally {
                 showLoading(false);
             }
         };
+
+        // Helper function for SSE handling
+        function setupEventSource(url) {
+            const eventSource = new EventSource(url);
+
+            eventSource.onmessage = (event) => {
+                try {
+                    const data = JSON.parse(event.data);
+                    console.log("Received chunk:", data);
+
+                    if (data.x && data.y) {
+                        renderClimateChart(data);
+                        // Close connection after getting valid data
+                        eventSource.close();
+                    }
+                } catch (e) {
+                    console.error("Error parsing SSE data:", e);
+                }
+            };
+
+            eventSource.onerror = () => {
+                console.error("Stream failed");
+                elements.chartContainer.innerHTML = `
+            <div class="alert alert-danger">
+                Failed to load streaming data
+            </div>
+        `;
+                eventSource.close();
+                showLoading(false);
+            };
+
+            // Set timeout for SSE
+            setTimeout(() => {
+                if (eventSource.readyState !== EventSource.CLOSED) {
+                    console.log("SSE timeout reached");
+                    eventSource.close();
+                    showLoading(false);
+                }
+            }, 30000); // 30 second timeout
+        }
 
         const fetchAndDisplayGlobalTrends = async () => {
             showLoading();
@@ -446,7 +533,7 @@
         const populateCountries = async () => {
             try {
                 const countries = await fetchData(API_ENDPOINTS.countries, 'countries');
-                
+
                 elements.countrySelect.innerHTML = '';
                 const defaultOption = document.createElement('option');
                 defaultOption.value = '';
@@ -454,14 +541,14 @@
                 defaultOption.disabled = true;
                 defaultOption.selected = true;
                 elements.countrySelect.appendChild(defaultOption);
-                
+
                 countries.forEach(country => {
                     const option = document.createElement('option');
                     option.value = country;
                     option.textContent = country;
                     elements.countrySelect.appendChild(option);
                 });
-                
+
                 // Set default country if available
                 if (countries.includes(DEFAULT_VALUES.country)) {
                     elements.countrySelect.value = DEFAULT_VALUES.country;
@@ -484,7 +571,7 @@
 
             try {
                 const months = await fetchData(API_ENDPOINTS.months(country), 'months');
-                
+
                 elements.monthSelect.innerHTML = '';
                 const defaultOption = document.createElement('option');
                 defaultOption.value = '';
@@ -492,14 +579,14 @@
                 defaultOption.disabled = true;
                 defaultOption.selected = true;
                 elements.monthSelect.appendChild(defaultOption);
-                
+
                 months.forEach(month => {
                     const option = document.createElement('option');
                     option.value = month;
                     option.textContent = month;
                     elements.monthSelect.appendChild(option);
                 });
-                
+
                 elements.monthSelect.disabled = false;
                 elements.analyzeBtn.disabled = true; // Still need to select month
             } catch (error) {
@@ -571,4 +658,5 @@
         document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
-</html> 
+
+</html>
