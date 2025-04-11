@@ -59,28 +59,61 @@ def get_weather():
         return jsonify({"error": "City name is required"}), 400
     
     try:
-        # Using your API key
         api_key = "6746ffcb6b9c2c75f6b942d0180088e3"
-        url = f"http://api.openweathermap.org/data/2.5/weather?q={city}&appid={api_key}&units=metric"
         
-        response = requests.get(url)
-        response.raise_for_status()  # Raises exception for 4XX/5XX errors
-        data = response.json()
+        # First get the coordinates for the city
+        geo_url = f"http://api.openweathermap.org/geo/1.0/direct?q={city}&limit=1&appid={api_key}"
+        geo_response = requests.get(geo_url)
+        geo_response.raise_for_status()
+        geo_data = geo_response.json()
+        
+        if not geo_data:
+            return jsonify({"error": "City not found"}), 404
+            
+        lat = geo_data[0]['lat']
+        lon = geo_data[0]['lon']
+        
+        # Get current weather data
+        weather_url = f"http://api.openweathermap.org/data/2.5/weather?lat={lat}&lon={lon}&appid={api_key}&units=metric"
+        weather_response = requests.get(weather_url)
+        weather_response.raise_for_status()
+        weather_data = weather_response.json()
+        
+        # Get air quality data
+        aqi_url = f"http://api.openweathermap.org/data/2.5/air_pollution?lat={lat}&lon={lon}&appid={api_key}"
+        aqi_response = requests.get(aqi_url)
+        aqi_response.raise_for_status()
+        aqi_data = aqi_response.json()
+        
+        # Map AQI value to quality description
+        aqi_map = {
+            1: "Good",
+            2: "Fair",
+            3: "Moderate",
+            4: "Poor",
+            5: "Very Poor"
+        }
+        aqi_value = aqi_data['list'][0]['main']['aqi']
+        air_quality = aqi_map.get(aqi_value, "Unknown")
         
         return jsonify({
-            "temperature": data['main']['temp'],
-            "humidity": data['main']['humidity'],
-            "wind_speed": data['wind']['speed'],
-            "air_quality": "N/A",  # OpenWeatherMap doesn't provide this in free tier
-            "city": data['name'],
-            "country": data['sys']['country']
+            "temperature": weather_data['main']['temp'],
+            "humidity": weather_data['main']['humidity'],
+            "wind_speed": weather_data['wind']['speed'],
+            "air_quality": air_quality,
+            "air_quality_index": aqi_value,
+            "city": weather_data['name'],
+            "country": weather_data['sys']['country'],
+            "coordinates": {
+                "latitude": lat,
+                "longitude": lon
+            }
         })
         
     except requests.exceptions.RequestException as e:
-        return jsonify({"error": f"Weather API error: {str(e)}"}), 500
-    except KeyError as e:
+        return jsonify({"error": f"API error: {str(e)}"}), 500
+    except (KeyError, IndexError) as e:
         return jsonify({"error": f"Unexpected API response format: {str(e)}"}), 500
-
 @app.route('/api/countries')
 def get_countries():
     try:
