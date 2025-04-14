@@ -139,14 +139,26 @@ def get_climate_data(country, month):
         # Load the CSV data
         df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
         
+        # Get year range parameters (default to full range if not specified)
+        start_year = request.args.get('start', default=2000, type=int)
+        end_year = request.args.get('end', default=2020, type=int)
+        
         # Clean the month name by removing special characters and normalizing
         month_cleaned = re.sub(r'[^\w\s-]', '', month).strip().lower()
         
-        # Get all valid year columns (format Y2000, Y2001, etc.)
-        year_cols = [col for col in df.columns if col.startswith('Y') and col[1:].isdigit()]
+        # Get valid year columns within requested range
+        year_cols = [
+            col for col in df.columns 
+            if col.startswith('Y') 
+            and col[1:].isdigit()
+            and start_year <= int(col[1:]) <= end_year
+        ]
         
         if not year_cols:
-            return jsonify({"error": "No valid year columns found in dataset"}), 500
+            return jsonify({
+                "error": f"No data available for {country} between {start_year}-{end_year}",
+                "suggestion": "Try a different year range"
+            }), 404
 
         # Filter for country and month (case insensitive, partial match)
         filtered = df[
@@ -164,21 +176,72 @@ def get_climate_data(country, month):
         years = [int(col[1:]) for col in year_cols]
         temperatures = filtered[year_cols].values[0].tolist()
         
-        # Return data in the format expected by the frontend
         return jsonify({
             "x": years,
             "y": temperatures,
-            "title": f"Temperature in {country} ({month})",
+            "title": f"Temperature in {country} ({month}) {start_year}-{end_year}",
             "labels": {
                 "x": "Year",
                 "y": "Temperature (°C)"
             },
             "color": "#4bc0c0",
-            "name": "Temperature"
+            "name": "Temperature",
+            "meta": {
+                "country": country,
+                "month": month,
+                "start_year": start_year,
+                "end_year": end_year
+            }
         })
         
     except Exception as e:
-        return jsonify({"error": f"Server error: {str(e)}"}), 500
+        return jsonify({
+            "error": f"Server error: {str(e)}",
+            "solution": "Please try again with different parameters"
+        }), 500
+
+@app.route('/api/global-trends')
+def global_trends():
+    try:
+        df = pd.read_csv("Cleaned_Environment_Temperature.csv", encoding='latin1')
+        
+        # Example: Calculate global averages by year
+        year_cols = [col for col in df.columns if col.startswith('Y') and col[1:].isdigit()]
+        global_avg = df[year_cols].mean().tolist()  # Average across all countries/months
+        years = [int(col[1:]) for col in year_cols]
+        
+        return jsonify({
+            "x": years,
+            "y": global_avg,
+            "title": "Global Temperature Trends (Annual Averages)",
+            "labels": {"x": "Year", "y": "Temperature (°C)"}
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/api/precipitation')
+def precipitation():
+    try:
+        # First try to load real data
+        try:
+            df = pd.read_csv("Precipitation_Data.csv")
+            months = df['Month'].tolist()
+            precipitation = df['Precipitation'].tolist()
+        except FileNotFoundError:
+            # Fallback to sample data if file missing
+            months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun",
+                     "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+            precipitation = [120, 90, 80, 70, 60, 50,
+                           60, 70, 80, 90, 100, 110]
+            
+        return jsonify({
+            "x": months,
+            "y": precipitation,
+            "title": "Global Precipitation Patterns",
+            "labels": {"x": "Month", "y": "Precipitation (mm)"}
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 
 @app.route('/plot')

@@ -167,7 +167,7 @@
             <div class="col-md-3">
                 <div class="card">
                     <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">🌎 Select Location</h5>
+                        <h5 class="mb-0">🌎 Select Location and Time</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
@@ -182,7 +182,28 @@
                                 <option value="" selected disabled>Select Month</option>
                             </select>
                         </div>
-                        <button id="analyzeBtn" class="btn btn-primary w-100" disabled>
+                        <div class="mb-3">
+                            <label for="yearSelect" class="form-label">Year Range</label>
+                            <select class="form-select" id="yearSelect">
+                                <option value="2000-2020">2000-2020 (Full Range)</option>
+                                <option value="2000-2010">2000-2010 (Early Period)</option>
+                                <option value="2011-2020">2011-2020 (Recent Period)</option>
+                                <option value="custom">Custom Range...</option>
+                            </select>
+                        </div>
+                        <div class="mb-3" id="customYearRange" style="display:none;">
+                            <div class="row">
+                                <div class="col">
+                                    <input type="number" class="form-control" id="startYear" placeholder="Start Year"
+                                        min="2000" max="2020" value="2000">
+                                </div>
+                                <div class="col">
+                                    <input type="number" class="form-control" id="endYear" placeholder="End Year"
+                                        min="2000" max="2020" value="2020">
+                                </div>
+                            </div>
+                        </div>
+                        <button id="analyzeBtn" class="btn btn-primary w-100">
                             <i class="fas fa-chart-line me-1"></i> Analyze
                         </button>
                     </div>
@@ -278,13 +299,14 @@
             weather: '/get_weather',
             countries: '/api/countries',
             months: (country) => `/api/cities/${encodeURIComponent(country)}`,
-            climateData: (country, month) => `/api/climate-data/${encodeURIComponent(country)}/${encodeURIComponent(month)}`,
+            climateData: (country, month, startYear, endYear) =>
+                `/api/climate-data/${country}/${month}?start=${startYear}&end=${endYear}`,
             globalTrends: '/api/global-trends',
             precipitation: '/api/precipitation'
         };
 
         const DEFAULT_VALUES = {
-            city: 'London',
+            city: 'Karachi',
             country: 'Pakistan'
         };
 
@@ -413,13 +435,25 @@
             }
 
             showLoading();
-            elements.chartTitle.textContent = `Climate Data for ${country} (${month})`;
 
             try {
+                // Get year range selection
+                const yearRange = document.getElementById('yearSelect').value;
+                let startYear = 2000;
+                let endYear = 2020;
+
+                if (yearRange === 'custom') {
+                    startYear = parseInt(document.getElementById('startYear').value);
+                    endYear = parseInt(document.getElementById('endYear').value);
+                } else {
+                    [startYear, endYear] = yearRange.split('-').map(Number);
+                }
+
                 const cleanMonth = month.replace(/[^\w\s-]/g, '').split('-')[0].trim();
-                const url = `/api/climate-data/${encodeURIComponent(country)}/${encodeURIComponent(cleanMonth)}`;
+                const url = `/api/climate-data/${encodeURIComponent(country)}/${encodeURIComponent(cleanMonth)}?start=${startYear}&end=${endYear}`;
 
                 console.log("Fetching from:", url);
+                elements.chartTitle.textContent = `Climate Data for ${country} (${month}) ${startYear}-${endYear}`;
 
                 // First try standard fetch
                 const response = await fetch(url);
@@ -461,7 +495,7 @@
             }
         };
 
-        // Helper function for SSE handling
+        // Helper function for SSE handling (unchanged)
         function setupEventSource(url) {
             const eventSource = new EventSource(url);
 
